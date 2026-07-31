@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sankey Open Studio</title>
+<meta name="description" content="A free, open source sankey diagram builder. Runs entirely in your browser. No accounts, no servers, your data never leaves your computer.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230e7490'/%3E%3Cpath d='M6 8h6v4H6zM6 20h6v4H6zM20 13h6v6h-6z' fill='%23fff'/%3E%3Cpath d='M12 10c4 0 4 5 8 5M12 22c4 0 4-5 8-5' stroke='%23fff' stroke-width='2.5' fill='none'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand" title="Sankey Open Studio">
+    <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0e8aa5"/><stop offset="1" stop-color="#0a5a70"/></linearGradient></defs><rect width="32" height="32" rx="7" fill="url(#brandGrad)"/><path d="M6 8h6v4H6zM6 20h6v4H6zM20 13h6v6h-6z" fill="#fff"/><path d="M12 10c4 0 4 5 8 5M12 22c4 0 4-5 8-5" stroke="#fff" stroke-width="2.5" fill="none"/></svg>
+    <span>Sankey Open Studio</span>
+  </div>
+  <input id="diagramName" class="name-input" type="text" aria-label="Diagram title" placeholder="Untitled diagram">
+  <div class="topbar-actions">
+    <button id="btnDiagrams" class="btn">My diagrams</button>
+    <button id="btnNew" class="btn">New</button>
+    <div class="menu-wrap">
+      <button id="btnDownload" class="btn btn-primary" aria-haspopup="true" aria-expanded="false">Download &#9662;</button>
+      <div class="menu" id="downloadMenu" hidden>
+        <button data-export="svg">SVG image</button>
+        <button data-export="png">PNG image</button>
+        <button data-export="json">JSON backup</button>
+      </div>
+    </div>
+    <label class="btn file-btn">Open JSON<input type="file" id="importFile" accept=".json,application/json"></label>
+  </div>
+</header>
+
+<main class="workspace">
+  <section id="canvasWrap" class="canvas-wrap">
+    <svg id="chart" role="img" aria-label="Sankey diagram"></svg>
+    <div id="emptyHint" class="empty-hint" hidden>
+      <p><strong>No data yet.</strong></p>
+      <p>Use <em>Paste from spreadsheet</em> in the panel on the right,<br>or type flows into the table by hand.</p>
+    </div>
+    <div id="tooltip" class="tooltip" hidden></div>
+    <p class="credit">Sankey Open Studio &middot; free &amp; open source &middot; made by <a href="https://www.linkedin.com/in/olinlagon" target="_blank" rel="noopener">Olin Lagon</a></p>
+  </section>
+
+  <aside class="sidebar">
+
+    <details class="panel" open>
+      <summary>Data</summary>
+      <div class="panel-body">
+        <button id="btnPaste" class="btn btn-wide">Paste from spreadsheet</button>
+        <div class="table-scroll">
+          <table class="data-table" id="dataTable">
+            <thead><tr><th>From</th><th>To</th><th>Amount</th><th></th></tr></thead>
+            <tbody id="dataRows"></tbody>
+          </table>
+        </div>
+        <div class="row-actions">
+          <button id="btnAddRow" class="btn">+ Add flow</button>
+          <button id="btnClearData" class="btn btn-danger-ghost">Clear all</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Labels</summary>
+      <div class="panel-body">
+        <label class="field">Font size <span id="fontSizeVal" class="val"></span>
+          <input type="range" id="setFontSize" min="9" max="22" step="1">
+        </label>
+        <label class="field">Label position
+          <select id="setLabelPos">
+            <option value="outside">Outside the diagram</option>
+            <option value="inside">Inside the diagram</option>
+          </select>
+        </label>
+        <label class="field checkbox"><input type="checkbox" id="setShowValues"> Show amounts under labels</label>
+        <label class="field">Decimal places
+          <select id="setDecimals">
+            <option value="auto">Auto</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+          </select>
+        </label>
+        <div class="field-pair">
+          <label class="field">Prefix <input type="text" id="setPrefix" placeholder="$" maxlength="6"></label>
+          <label class="field">Suffix <input type="text" id="setSuffix" placeholder="M" maxlength="8"></label>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Layout</summary>
+      <div class="panel-body">
+        <label class="field">Canvas size
+          <select id="setSize">
+            <option value="720x450">Small (720 &times; 450)</option>
+            <option value="960x600">Medium (960 &times; 600)</option>
+            <option value="1200x750">Large (1200 &times; 750)</option>
+            <option value="1440x900">Extra large (1440 &times; 900)</option>
+          </select>
+        </label>
+        <label class="field">Node width <span id="nodeWidthVal" class="val"></span>
+          <input type="range" id="setNodeWidth" min="4" max="40" step="1">
+        </label>
+        <label class="field">Node spacing <span id="nodePadVal" class="val"></span>
+          <input type="range" id="setNodePad" min="4" max="60" step="1">
+        </label>
+        <label class="field">Flow opacity <span id="linkOpacityVal" class="val"></span>
+          <input type="range" id="setLinkOpacity" min="0.1" max="1" step="0.05">
+        </label>
+        <button id="btnResetLayout" class="btn btn-wide">Reset node positions</button>
+        <p class="hint">Tip: drag any node on the diagram to move it.</p>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Colors</summary>
+      <div class="panel-body">
+        <label class="field">Default node color
+          <input type="color" id="setNodeColor">
+        </label>
+        <label class="field">Flow color
+          <select id="setLinkColorMode">
+            <option value="neutral">Neutral gray</option>
+            <option value="source">Match source node</option>
+            <option value="target">Match target node</option>
+          </select>
+        </label>
+        <div class="row-actions">
+          <button id="btnAutoColor" class="btn">Auto-color sources</button>
+          <button id="btnResetColors" class="btn btn-danger-ghost">Reset colors</button>
+        </div>
+        <p class="hint">Click a node on the diagram to set its own color and text.</p>
+      </div>
+    </details>
+
+  </aside>
+</main>
+
+<!-- My diagrams drawer -->
+<div id="drawerBackdrop" class="backdrop" hidden></div>
+<aside id="drawer" class="drawer" hidden aria-label="My diagrams">
+  <div class="drawer-head">
+    <h2>My diagrams</h2>
+    <button id="btnCloseDrawer" class="btn icon-btn" aria-label="Close">&times;</button>
+  </div>
+  <p class="hint drawer-hint">Diagrams are saved in this browser automatically. Download a JSON backup to move one to another computer.</p>
+  <ul id="diagramList" class="diagram-list"></ul>
+  <button id="btnNewFromDrawer" class="btn btn-primary btn-wide">+ New diagram</button>
+</aside>
+
+<!-- Paste modal -->
+<div id="pasteBackdrop" class="backdrop" hidden></div>
+<div id="pasteModal" class="modal" hidden role="dialog" aria-label="Paste data">
+  <div class="modal-head">
+    <h2>Paste from a spreadsheet</h2>
+    <button id="btnClosePaste" class="btn icon-btn" aria-label="Close">&times;</button>
+  </div>
+  <p class="hint">Copy three columns from Excel, Google Sheets, or a CSV file: <strong>From, To, Amount</strong>. A header row is fine, it will be skipped.</p>
+  <textarea id="pasteArea" rows="10" spellcheck="false" placeholder="General Excise Tax&#9;State General Fund&#9;4930.4&#10;Individual Income Tax&#9;State General Fund&#9;2923.1&#10;State General Fund&#9;Public Schools&#9;2623.7"></textarea>
+  <div class="modal-foot">
+    <label class="field checkbox"><input type="radio" name="pasteMode" value="replace" checked> Replace current data</label>
+    <label class="field checkbox"><input type="radio" name="pasteMode" value="append"> Add to current data</label>
+    <button id="btnDoPaste" class="btn btn-primary">Import</button>
+  </div>
+</div>
+
+<!-- Node editor popover -->
+<div id="nodePopover" class="popover" hidden role="dialog" aria-label="Edit node">
+  <div class="popover-head">
+    <strong>Node settings</strong>
+    <button id="btnClosePopover" class="btn icon-btn" aria-label="Close">&times;</button>
+  </div>
+  <label class="field">Display label
+    <input type="text" id="npLabel">
+  </label>
+  <div class="field">Color
+    <div class="swatches" id="npSwatches"></div>
+    <input type="color" id="npColor" aria-label="Custom color">
+  </div>
+  <label class="field">Second line (blank = amount)
+    <input type="text" id="npLine2" placeholder="">
+  </label>
+  <label class="field">Third line (optional)
+    <input type="text" id="npLine3" placeholder="e.g. up 4% from last year">
+  </label>
+  <div class="row-actions">
+    <button id="btnResetNode" class="btn btn-danger-ghost">Reset node</button>
+    <button id="btnDonePopover" class="btn btn-primary">Done</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
