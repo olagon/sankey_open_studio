@@ -81,6 +81,15 @@ const PRESETS = [
 
 const CREDIT_TEXT = 'Created with https://olagon.github.io/sankey_open_studio/';
 
+/* Anonymous usage analytics. Only event names and counts are sent — never
+   diagram content, node names, or amounts. No-op when offline or self-hosted
+   without the Google tag. */
+function track(name, params) {
+  try {
+    if (typeof gtag === 'function') gtag('event', name, params || {});
+  } catch (e) { /* analytics must never break the app */ }
+}
+
 /* =========================================================
    Storage (localStorage)
    ========================================================= */
@@ -1101,6 +1110,7 @@ document.getElementById('btnDoPaste').addEventListener('click', () => {
   else doc.links = doc.links.concat(links);
   closePaste();
   markDirty(true);
+  track('paste_data', { rows: links.length });
   if (skipped > 0) {
     console.info(`Sankey Open Studio: skipped ${skipped} row(s) that did not have From, To, Amount.`);
   }
@@ -1330,6 +1340,7 @@ function newDiagram() {
   doc = blankDoc();
   persistDoc(doc);
   rememberOpen(doc.id);
+  track('new_diagram');
   syncSettingsUI();
   renderTable();
   render();
@@ -1424,6 +1435,7 @@ downloadMenu.addEventListener('click', (e) => {
   const kind = e.target.dataset && e.target.dataset.export;
   if (!kind) return;
   downloadMenu.hidden = true;
+  track('export', { format: kind });
   if (kind === 'svg') exportSVG();
   else if (kind === 'png') exportPNG();
   else if (kind === 'json') exportJSON();
@@ -1455,6 +1467,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
       };
       persistDoc(imported);
       openDiagram(imported.id);
+      track('restore_json');
     } catch (err) {
       alert('That file does not look like a Sankey Open Studio JSON backup.');
     }

@@ -43,6 +43,10 @@ Diagrams are stored in your browser's local storage on your machine. Clearing si
 
 A simple user guide ships with the app as [guide.html](guide.html), linked from the Guide button in the top bar.
 
+## Analytics and privacy
+
+Diagram data never leaves the browser. The hosted version includes a Google Analytics tag that counts page views and anonymous feature events (diagram created, data pasted, exports, restores); no diagram content is ever sent. See [privacy.html](privacy.html) for the full policy. If you self host, delete the gtag snippet from the top of `index.html`, `guide.html`, and `privacy.html` and nothing is tracked at all.
+
 ## Browser support
 
 Any recent Chrome, Edge, Firefox, or Safari. No internet connection is required after the files are on your machine.
