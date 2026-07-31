@@ -231,6 +231,7 @@ body { display: flex; flex-direction: column; }
   border-radius: 16px;
   box-shadow: var(--shadow-soft);
   overflow: hidden;
+  flex-shrink: 0; /* never compress panels; let the sidebar scroll instead */
 }
 .panel summary {
   cursor: pointer;
