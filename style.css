@@ -271,6 +271,8 @@ body { display: flex; flex-direction: column; }
   border: 1px solid var(--border);
   border-radius: 10px;
   background: #fff;
+  width: 100%;
+  min-width: 0;
 }
 .field input[type="text"]:focus, .field select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .field input[type="range"] { width: 100%; accent-color: var(--accent); }
@@ -286,7 +288,28 @@ body { display: flex; flex-direction: column; }
 .field.checkbox { flex-direction: row; align-items: center; gap: 8px; font-weight: 400; font-size: 13px; color: var(--ink); }
 .field.checkbox input { accent-color: var(--accent); }
 .field-pair { display: flex; gap: 8px; }
-.field-pair .field { flex: 1; }
+.field-pair .field { flex: 1; min-width: 0; }
+
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-top: 4px;
+}
+.preset {
+  display: flex;
+  height: 24px;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  padding: 0;
+  background: none;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.preset span { flex: 1; }
+.preset:hover { transform: scale(1.07); box-shadow: 0 2px 8px rgba(61, 44, 30, 0.25); }
+.preset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .val { color: var(--muted); font-weight: 400; }
 
 .hint { font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5; }

@@ -49,7 +49,35 @@ const DEFAULT_SETTINGS = {
   suffix: '',
   showValues: true,
   showCredit: true,
+  showTitle: true,
+  titleSize: 26,
+  titleColor: '#1c5cab',
 };
+
+/* 20 color presets. Clicking one colors every node, cycling through the set
+   in layout order (left to right, top to bottom). */
+const PRESETS = [
+  { name: 'Classic', colors: ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#4a3aa7'] },
+  { name: 'Ocean', colors: ['#0e7490', '#22d3ee', '#0369a1', '#67e8f9', '#155e75', '#38bdf8'] },
+  { name: 'Sunset', colors: ['#f59e0b', '#ef4444', '#ec4899', '#f97316', '#b91c1c', '#fbbf24'] },
+  { name: 'Rainforest', colors: ['#166534', '#22c55e', '#84cc16', '#14532d', '#4ade80', '#a3e635'] },
+  { name: 'Lava', colors: ['#7f1d1d', '#dc2626', '#f97316', '#fca5a5', '#991b1b', '#fdba74'] },
+  { name: 'Pastel', colors: ['#93c5fd', '#f9a8d4', '#a7f3d0', '#fde68a', '#c4b5fd', '#fdba74'] },
+  { name: 'Jewel', colors: ['#7c3aed', '#db2777', '#0d9488', '#ca8a04', '#1d4ed8', '#be123c'] },
+  { name: 'Earth', colors: ['#78350f', '#a16207', '#4d7c0f', '#92400e', '#57534e', '#b45309'] },
+  { name: 'Blues', colors: ['#1e3a8a', '#3b82f6', '#93c5fd', '#1e40af', '#60a5fa', '#bfdbfe'] },
+  { name: 'Greens', colors: ['#14532d', '#16a34a', '#86efac', '#15803d', '#4ade80', '#bbf7d0'] },
+  { name: 'Warm gray', colors: ['#44403c', '#78716c', '#a8a29e', '#57534e', '#d6d3d1', '#292524'] },
+  { name: 'Grayscale', colors: ['#111827', '#4b5563', '#9ca3af', '#374151', '#6b7280', '#d1d5db'] },
+  { name: 'Tropical', colors: ['#06b6d4', '#f43f5e', '#fbbf24', '#10b981', '#8b5cf6', '#f97316'] },
+  { name: 'Berry', colors: ['#831843', '#be185d', '#ec4899', '#f9a8d4', '#9d174d', '#fbcfe8'] },
+  { name: 'Vintage', colors: ['#8c6d46', '#b0532c', '#5c6b52', '#a48b5f', '#7a4f28', '#c2a878'] },
+  { name: 'Corporate', colors: ['#0f4c81', '#4f81bd', '#9dc3e6', '#1f6fb2', '#2e75b6', '#bdd7ee'] },
+  { name: 'Autumn', colors: ['#7c2d12', '#ea580c', '#eab308', '#a16207', '#dc2626', '#f59e0b'] },
+  { name: 'Spring', colors: ['#65a30d', '#fb7185', '#34d399', '#fcd34d', '#a3e635', '#f9a8d4'] },
+  { name: 'Wine & gold', colors: ['#581c87', '#a21caf', '#ca8a04', '#6b21a8', '#eab308', '#86198f'] },
+  { name: 'Aloha', colors: ['#0e7490', '#f97316', '#16a34a', '#e11d48', '#eab308', '#0369a1'] },
+];
 
 const CREDIT_TEXT = 'Created with https://olagon.github.io/sankey_open_studio/';
 
@@ -355,7 +383,7 @@ function computeLayout(d) {
   const outside = s.labelPosition === 'outside';
   const marginL = outside ? maxLabelW : 16;
   const marginR = outside ? maxLabelW : 16;
-  const marginT = (d.name ? fs * 2.2 + 34 : 0) + 22;
+  const marginT = (d.name && s.showTitle ? s.titleSize * 1.3 + 30 : 0) + 22;
   const marginB = s.showCredit ? 38 : 26;
 
   const innerW = Math.max(80, s.width - marginL - marginR);
@@ -553,14 +581,14 @@ function render() {
   document.getElementById('emptyHint').hidden = !!layoutCache;
 
   // Title
-  if (doc.name) {
+  if (doc.name && s.showTitle) {
     el('text', {
       x: s.width / 2,
-      y: s.fontSize * 1.4 + 26,
+      y: s.titleSize + 24,
       'text-anchor': 'middle',
-      'font-size': Math.round(s.fontSize * 2),
+      'font-size': s.titleSize,
       'font-weight': 700,
-      fill: TITLE_COLOR,
+      fill: s.titleColor || TITLE_COLOR,
     }, svg).textContent = doc.name;
   }
 
@@ -1017,6 +1045,9 @@ const inFontSize = bindSetting('setFontSize', 'fontSize', { number: true, showIn
 const inLabelPos = bindSetting('setLabelPos', 'labelPosition');
 const inShowValues = bindSetting('setShowValues', 'showValues');
 const inShowCredit = bindSetting('setShowCredit', 'showCredit');
+const inShowTitle = bindSetting('setShowTitle', 'showTitle');
+const inTitleSize = bindSetting('setTitleSize', 'titleSize', { number: true, showIn: 'titleSizeVal' });
+const inTitleColor = bindSetting('setTitleColor', 'titleColor');
 const inDecimals = bindSetting('setDecimals', 'decimals');
 const inPrefix = bindSetting('setPrefix', 'prefix');
 const inSuffix = bindSetting('setSuffix', 'suffix');
@@ -1042,6 +1073,33 @@ document.getElementById('btnResetLayout').addEventListener('click', () => {
   }
   markDirty();
 });
+
+function buildPaletteGrid() {
+  const grid = document.getElementById('paletteGrid');
+  PRESETS.forEach((preset) => {
+    const b = document.createElement('button');
+    b.className = 'preset';
+    b.title = preset.name;
+    b.setAttribute('aria-label', 'Apply ' + preset.name + ' colors');
+    preset.colors.slice(0, 4).forEach((c) => {
+      const chip = document.createElement('span');
+      chip.style.background = c;
+      b.appendChild(chip);
+    });
+    b.addEventListener('click', () => applyPreset(preset.colors));
+    grid.appendChild(b);
+  });
+}
+
+function applyPreset(colors) {
+  if (!layoutCache) return;
+  const ordered = [...layoutCache.nodes].sort((a, b) => a.depth - b.depth || a.y0 - b.y0);
+  ordered.forEach((n, i) => {
+    const o = doc.nodes[n.name] || (doc.nodes[n.name] = {});
+    o.color = colors[i % colors.length];
+  });
+  markDirty();
+}
 
 document.getElementById('btnAutoColor').addEventListener('click', () => {
   if (!layoutCache) return;
@@ -1072,6 +1130,10 @@ function syncSettingsUI() {
   inLabelPos.value = s.labelPosition;
   inShowValues.checked = !!s.showValues;
   inShowCredit.checked = !!s.showCredit;
+  inShowTitle.checked = !!s.showTitle;
+  inTitleSize.value = s.titleSize;
+  document.getElementById('titleSizeVal').textContent = s.titleSize;
+  inTitleColor.value = s.titleColor;
   inDecimals.value = String(s.decimals);
   inPrefix.value = s.prefix;
   inSuffix.value = s.suffix;
@@ -1332,6 +1394,7 @@ document.addEventListener('keydown', (e) => {
 
 function init() {
   buildSwatches();
+  buildPaletteGrid();
   const index = loadIndex();
   if (!index.length) {
     doc = sampleDoc();

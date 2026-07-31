@@ -62,6 +62,20 @@
     </details>
 
     <details class="panel">
+      <summary>Title</summary>
+      <div class="panel-body">
+        <label class="field checkbox"><input type="checkbox" id="setShowTitle"> Show title on the diagram</label>
+        <label class="field">Title size <span id="titleSizeVal" class="val"></span>
+          <input type="range" id="setTitleSize" min="14" max="48" step="1">
+        </label>
+        <label class="field">Title color
+          <input type="color" id="setTitleColor">
+        </label>
+        <p class="hint">The title text is the diagram name at the top of the page.</p>
+      </div>
+    </details>
+
+    <details class="panel">
       <summary>Labels</summary>
       <div class="panel-body">
         <label class="field">Font size <span id="fontSizeVal" class="val"></span>
@@ -118,6 +132,9 @@
     <details class="panel">
       <summary>Colors</summary>
       <div class="panel-body">
+        <div class="field">Color presets (click to color all nodes)
+          <div class="palette-grid" id="paletteGrid"></div>
+        </div>
         <label class="field">Default node color
           <input type="color" id="setNodeColor">
         </label>
