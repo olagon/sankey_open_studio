@@ -102,6 +102,8 @@ body { display: flex; flex-direction: column; }
   padding: 8px 15px;
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s, transform 0.05s;
+  text-decoration: none;
+  display: inline-block;
 }
 .btn:hover { background: #f0e8d5; border-color: rgba(61, 44, 30, 0.35); }
 .btn:active { transform: translateY(1px); }
@@ -313,6 +315,7 @@ body { display: flex; flex-direction: column; }
 .val { color: var(--muted); font-weight: 400; }
 
 .hint { font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5; }
+.hint a { color: var(--accent); font-weight: 600; }
 
 .row-actions { display: flex; gap: 8px; }
 .row-actions .btn { flex: 1; }

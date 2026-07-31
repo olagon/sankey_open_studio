@@ -37,7 +37,11 @@ Node totals are computed automatically as the larger of a node's inflow and outf
 
 ## Where your data lives
 
-Diagrams are stored in your browser's local storage on your machine. Clearing site data in your browser will remove them, so use **Download → JSON backup** for anything you care about. A JSON backup can be opened on any computer with **Open JSON**.
+Diagrams are stored in your browser's local storage on your machine. Clearing site data in your browser will remove them, so use **Download → JSON backup** for anything you care about. A JSON backup can be brought back on any computer with **Restore from JSON**.
+
+## How to guide
+
+A simple user guide ships with the app as [guide.html](guide.html), linked from the Guide button in the top bar.
 
 ## Browser support
 

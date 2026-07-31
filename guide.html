@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to use Sankey Open Studio</title>
+<meta name="description" content="A simple guide to building sankey diagrams with Sankey Open Studio.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230e7490'/%3E%3Cpath d='M6 8h6v4H6zM6 20h6v4H6zM20 13h6v6h-6z' fill='%23fff'/%3E%3Cpath d='M12 10c4 0 4 5 8 5M12 22c4 0 4-5 8-5' stroke='%23fff' stroke-width='2.5' fill='none'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --page: #ede5d3;
+    --surface: #fbf7ec;
+    --ink: #33281a;
+    --ink-2: #635640;
+    --muted: #9a8c70;
+    --accent: #0e7490;
+    --accent-deep: #0a5a70;
+    --hairline: #ddd1b8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    background: linear-gradient(180deg, #f2ecdd, #e4d9c1);
+    background-attachment: fixed;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+  .card {
+    background: var(--surface);
+    border-radius: 20px;
+    box-shadow: 0 14px 36px rgba(61, 44, 30, 0.16);
+    padding: 36px 40px;
+  }
+  @media (max-width: 600px) { .card { padding: 24px 20px; } }
+  .top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .top a.back {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #0e8aa5, #0a5a70);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+  }
+  h1 { font-size: 26px; margin: 6px 0 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 22px; }
+  h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #7c5b33;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 7px;
+    margin: 34px 0 10px;
+  }
+  p { margin: 0 0 12px; color: var(--ink-2); }
+  p strong, li strong { color: var(--ink); }
+  ol, ul { margin: 0 0 12px; padding-left: 22px; color: var(--ink-2); }
+  li { margin-bottom: 7px; }
+  code {
+    background: #f0e9d8;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  table { border-collapse: collapse; margin: 0 0 12px; font-size: 14px; }
+  th, td { border: 1px solid var(--hairline); padding: 6px 12px; text-align: left; }
+  th { background: #f0e9d8; }
+  a { color: var(--accent); font-weight: 600; }
+  .tip {
+    background: #e2eff2;
+    border-left: 4px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 10px 14px;
+    margin: 0 0 12px;
+    color: var(--ink-2);
+    font-size: 14px;
+  }
+  .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+  .foot a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="top">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0e8aa5"/><stop offset="1" stop-color="#0a5a70"/></linearGradient></defs><rect width="32" height="32" rx="7" fill="url(#g)"/><path d="M6 8h6v4H6zM6 20h6v4H6zM20 13h6v6h-6z" fill="#fff"/><path d="M12 10c4 0 4 5 8 5M12 22c4 0 4-5 8-5" stroke="#fff" stroke-width="2.5" fill="none"/></svg>
+      <strong>Sankey Open Studio</strong>
+      <a class="back" href="index.html">Open the app</a>
+    </div>
+    <h1>How to use Sankey Open Studio</h1>
+    <p class="sub">Free and open source. Everything runs in your browser and your data never leaves your computer.</p>
+
+    <h2>Your data, in three columns</h2>
+    <p>A sankey diagram is a list of flows. Each flow has three parts: where the money or quantity comes <strong>From</strong>, where it goes <strong>To</strong>, and the <strong>Amount</strong>.</p>
+    <table>
+      <tr><th>From</th><th>To</th><th>Amount</th></tr>
+      <tr><td>Retail Sales</td><td>Revenue</td><td>4200</td></tr>
+      <tr><td>Wholesale</td><td>Revenue</td><td>1800</td></tr>
+      <tr><td>Revenue</td><td>Payroll</td><td>1900</td></tr>
+      <tr><td>Revenue</td><td>Net Profit</td><td>1200</td></tr>
+    </table>
+    <p>Set up these three columns in Excel or Google Sheets, copy them, then click <strong>Paste from spreadsheet</strong> in the Data panel and paste. A header row is fine, and dollar signs or commas in amounts get cleaned up automatically. You can also type flows straight into the table with <strong>+ Add flow</strong>.</p>
+    <div class="tip">A node's total is calculated for you as the larger of what flows in and what flows out. If a middle node like Revenue looks unbalanced, check that the amounts on each side add up.</div>
+
+    <h2>Editing nodes</h2>
+    <p>Click any node (the solid bar) on the diagram to open its settings. There you can change its display label, give it a color, replace the second line (normally the amount) with your own text, and add an optional third line, like a note or a year over year change.</p>
+    <p>Drag any node to nudge it around the canvas. Your adjustments are remembered, even after you add more data. <strong>Reset node positions</strong> in the Layout panel puts everything back to automatic.</p>
+
+    <h2>Coloring the diagram</h2>
+    <ol>
+      <li><strong>Presets.</strong> The Colors panel has 20 ready made palettes. Click one to color every node at once.</li>
+      <li><strong>One node.</strong> Click the node and pick a swatch or a custom color.</li>
+      <li><strong>One flow.</strong> Click any line to give that flow its own color. The Automatic button hands it back to the Flow color rule.</li>
+      <li><strong>Flow color rule.</strong> By default lines are neutral gray. In the Colors panel you can make every line match its source node or its target node instead.</li>
+    </ol>
+
+    <h2>Title and labels</h2>
+    <p>The diagram title is the name at the top of the page. The Title panel lets you resize it, recolor it, or hide it. The Labels panel controls the font size, whether labels sit outside or inside the diagram, decimal places, and the prefix and suffix on amounts, so <code>4930.4</code> can display as <code>$4,930.4M</code>.</p>
+    <p>The small "created with" line at the bottom of the image can be turned off in the Labels panel.</p>
+
+    <h2>Saving and backups</h2>
+    <p>Every change saves automatically in your browser, and <strong>My diagrams</strong> holds as many diagrams as you like. Saving is per browser on this computer, so for anything important, or to move a diagram to another machine, use <strong>Download → JSON backup</strong>. The <strong>Restore from JSON</strong> button brings a backup file back in as a new diagram, with every color, position, and setting intact.</p>
+    <div class="tip">Clearing your browser's site data deletes saved diagrams. A JSON backup is your safety net.</div>
+
+    <h2>Downloading your diagram</h2>
+    <p><strong>SVG</strong> is best for print and slides, it stays sharp at any size. <strong>PNG</strong> is a high resolution image ready for email and social posts. <strong>JSON backup</strong> is the diagram's data for restoring later.</p>
+
+    <h2>Quick answers</h2>
+    <ul>
+      <li><strong>My diagram looks tangled.</strong> Try a larger canvas size, more node spacing, or drag the busiest nodes apart.</li>
+      <li><strong>A label is cut off.</strong> Long names wrap automatically, but a bigger canvas gives them more room.</li>
+      <li><strong>Can two nodes have the same name?</strong> Same name means same node. Use distinct names like "Fees (state)" and "Fees (federal)" to keep them separate.</li>
+      <li><strong>Does anyone see my data?</strong> No. There is no server and no account. Everything stays on your computer.</li>
+    </ul>
+
+    <p class="foot">Sankey Open Studio is free and open source under the MIT license.<br>Made by <a href="https://www.linkedin.com/in/olinlagon" target="_blank" rel="noopener">Olin Lagon</a> · <a href="https://github.com/olagon/sankey_open_studio" target="_blank" rel="noopener">Source on GitHub</a></p>
+  </div>
+</div>
+</body>
+</html>
