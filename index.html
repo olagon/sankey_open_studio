@@ -184,6 +184,23 @@
   </div>
 </div>
 
+<!-- Flow (link) editor popover -->
+<div id="linkPopover" class="popover" hidden role="dialog" aria-label="Edit flow">
+  <div class="popover-head">
+    <strong id="lpTitle">Flow color</strong>
+    <button id="btnCloseLinkPopover" class="btn icon-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="field">Color
+    <div class="swatches" id="lpSwatches"></div>
+    <input type="color" id="lpColor" aria-label="Custom flow color">
+  </div>
+  <div class="row-actions">
+    <button id="btnAutoLink" class="btn btn-danger-ghost">Automatic</button>
+    <button id="btnDoneLinkPopover" class="btn btn-primary">Done</button>
+  </div>
+  <p class="hint">Automatic follows the Flow color setting in the Colors panel.</p>
+</div>
+
 <!-- Node editor popover -->
 <div id="nodePopover" class="popover" hidden role="dialog" aria-label="Edit node">
   <div class="popover-head">

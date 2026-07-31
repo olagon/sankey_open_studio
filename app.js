@@ -323,6 +323,7 @@ function computeLayout(d) {
       source: nodeMap.get(l.from),
       target: nodeMap.get(l.to),
       value: l.amount,
+      ref: l, // the underlying data row, so per-flow overrides persist
     };
     link.source.sourceLinks.push(link);
     link.target.targetLinks.push(link);
@@ -555,6 +556,7 @@ function nodeColor(n) {
 }
 
 function linkColor(l) {
+  if (l.ref && l.ref.color) return l.ref.color;
   const mode = doc.settings.linkColorMode;
   if (mode === 'source') return nodeColor(l.source);
   if (mode === 'target') return nodeColor(l.target);
@@ -623,6 +625,7 @@ function render() {
     path.addEventListener('mouseleave', hideTooltip);
     path.addEventListener('mouseenter', () => highlight((x) => x === l));
     path.addEventListener('mouseout', unhighlight);
+    path.addEventListener('click', (e) => openLinkPopover(l, e.clientX, e.clientY));
   });
 
   // ---- Nodes ----
@@ -831,6 +834,83 @@ function bindDrag(gNodes) {
 }
 
 /* =========================================================
+   Flow (link) popover
+   ========================================================= */
+
+const linkPopover = document.getElementById('linkPopover');
+const lpColor = document.getElementById('lpColor');
+const lpSwatches = document.getElementById('lpSwatches');
+let popoverLink = null; // data row of the flow being edited
+
+function buildLinkSwatches() {
+  lpSwatches.innerHTML = '';
+  [NEUTRAL_LINK, ...PALETTE].forEach((color) => {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.style.background = color;
+    b.dataset.color = color;
+    b.title = color;
+    b.addEventListener('click', () => {
+      if (!popoverLink) return;
+      popoverLink.color = color;
+      lpColor.value = color;
+      refreshLinkSwatchSelection(color);
+      markDirty();
+    });
+    lpSwatches.appendChild(b);
+  });
+}
+
+function refreshLinkSwatchSelection(color) {
+  lpSwatches.querySelectorAll('.swatch').forEach((b) => {
+    b.classList.toggle('selected', b.dataset.color.toLowerCase() === String(color).toLowerCase());
+  });
+}
+
+function openLinkPopover(l, clientX, clientY) {
+  closePopover();
+  popoverLink = l.ref;
+  document.getElementById('lpTitle').textContent = `${displayLabel(l.source)} → ${displayLabel(l.target)}`;
+  lpColor.value = popoverLink.color || NEUTRAL_LINK;
+  refreshLinkSwatchSelection(popoverLink.color || '');
+  hideTooltip();
+
+  linkPopover.hidden = false;
+  const wrap = document.getElementById('canvasWrap');
+  const wrapRect = wrap.getBoundingClientRect();
+  let x = clientX - wrapRect.left + wrap.scrollLeft + 12;
+  let y = clientY - wrapRect.top + wrap.scrollTop + 12;
+  const pw = linkPopover.offsetWidth;
+  const ph = linkPopover.offsetHeight;
+  if (x + pw > wrap.scrollLeft + wrap.clientWidth - 8) x = Math.max(8, x - pw - 24);
+  if (y + ph > wrap.scrollTop + wrap.clientHeight - 8) y = Math.max(8, y - ph - 24);
+  linkPopover.style.left = x + 'px';
+  linkPopover.style.top = y + 'px';
+}
+
+function closeLinkPopover() {
+  linkPopover.hidden = true;
+  popoverLink = null;
+}
+
+lpColor.addEventListener('input', () => {
+  if (!popoverLink) return;
+  popoverLink.color = lpColor.value;
+  refreshLinkSwatchSelection(lpColor.value);
+  markDirty();
+});
+
+document.getElementById('btnAutoLink').addEventListener('click', () => {
+  if (popoverLink) {
+    delete popoverLink.color;
+    markDirty();
+  }
+  closeLinkPopover();
+});
+document.getElementById('btnDoneLinkPopover').addEventListener('click', closeLinkPopover);
+document.getElementById('btnCloseLinkPopover').addEventListener('click', closeLinkPopover);
+
+/* =========================================================
    Node popover
    ========================================================= */
 
@@ -874,6 +954,7 @@ function setNodeOverride(name, key, value) {
 }
 
 function openNodePopover(name, clientX, clientY) {
+  closeLinkPopover();
   popoverNode = name;
   const o = doc.nodes[name] || {};
   npLabel.value = o.label || name;
@@ -1118,6 +1199,7 @@ document.getElementById('btnResetColors').addEventListener('click', () => {
     delete doc.nodes[name].color;
     if (!Object.keys(doc.nodes[name]).length) delete doc.nodes[name];
   }
+  doc.links.forEach((l) => { delete l.color; });
   doc.settings.defaultNodeColor = NEUTRAL_NODE;
   syncSettingsUI();
   markDirty();
@@ -1263,6 +1345,7 @@ function openDiagram(id) {
   doc = loaded;
   rememberOpen(doc.id);
   closePopover();
+  closeLinkPopover();
   syncSettingsUI();
   renderTable();
   render();
@@ -1362,7 +1445,11 @@ document.getElementById('importFile').addEventListener('change', (e) => {
         updatedAt: Date.now(),
         links: data.links
           .filter((l) => l && typeof l.from === 'string' && typeof l.to === 'string')
-          .map((l) => ({ from: l.from, to: l.to, amount: Number(l.amount) })),
+          .map((l) => {
+            const row = { from: l.from, to: l.to, amount: Number(l.amount) };
+            if (typeof l.color === 'string') row.color = l.color;
+            return row;
+          }),
         nodes: (data.nodes && typeof data.nodes === 'object') ? data.nodes : {},
         settings: Object.assign({}, DEFAULT_SETTINGS, data.settings || {}),
       };
@@ -1382,6 +1469,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closePopover();
+    closeLinkPopover();
     closePaste();
     closeDrawer();
     downloadMenu.hidden = true;
@@ -1394,6 +1482,7 @@ document.addEventListener('keydown', (e) => {
 
 function init() {
   buildSwatches();
+  buildLinkSwatches();
   buildPaletteGrid();
   const index = loadIndex();
   if (!index.length) {
