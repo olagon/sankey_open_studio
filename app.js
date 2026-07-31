@@ -48,7 +48,10 @@ const DEFAULT_SETTINGS = {
   prefix: '',
   suffix: '',
   showValues: true,
+  showCredit: true,
 };
+
+const CREDIT_TEXT = 'Created with https://olagon.github.io/sankey_open_studio/';
 
 /* =========================================================
    Storage (localStorage)
@@ -353,7 +356,7 @@ function computeLayout(d) {
   const marginL = outside ? maxLabelW : 16;
   const marginR = outside ? maxLabelW : 16;
   const marginT = (d.name ? fs * 2.2 + 34 : 0) + 22;
-  const marginB = 26;
+  const marginB = s.showCredit ? 38 : 26;
 
   const innerW = Math.max(80, s.width - marginL - marginR);
   const innerH = Math.max(80, s.height - marginT - marginB);
@@ -559,6 +562,17 @@ function render() {
       'font-weight': 700,
       fill: TITLE_COLOR,
     }, svg).textContent = doc.name;
+  }
+
+  // Credit line inside the image (appears in exports, can be turned off).
+  if (s.showCredit) {
+    el('text', {
+      x: s.width / 2,
+      y: s.height - 12,
+      'text-anchor': 'middle',
+      'font-size': 11,
+      fill: MUTED,
+    }, svg).textContent = CREDIT_TEXT;
   }
 
   if (!layoutCache) return;
@@ -1002,6 +1016,7 @@ function bindSetting(id, key, opts = {}) {
 const inFontSize = bindSetting('setFontSize', 'fontSize', { number: true, showIn: 'fontSizeVal' });
 const inLabelPos = bindSetting('setLabelPos', 'labelPosition');
 const inShowValues = bindSetting('setShowValues', 'showValues');
+const inShowCredit = bindSetting('setShowCredit', 'showCredit');
 const inDecimals = bindSetting('setDecimals', 'decimals');
 const inPrefix = bindSetting('setPrefix', 'prefix');
 const inSuffix = bindSetting('setSuffix', 'suffix');
@@ -1056,6 +1071,7 @@ function syncSettingsUI() {
   document.getElementById('fontSizeVal').textContent = s.fontSize;
   inLabelPos.value = s.labelPosition;
   inShowValues.checked = !!s.showValues;
+  inShowCredit.checked = !!s.showCredit;
   inDecimals.value = String(s.decimals);
   inPrefix.value = s.prefix;
   inSuffix.value = s.suffix;
