@@ -921,13 +921,72 @@ function bindDrag(gNodes) {
 }
 
 /* =========================================================
+   Shared color helpers: hex parsing + recent custom colors
+   ========================================================= */
+
+const RECENT_KEY = 'sos.recentColors.v1';
+
+function parseHex(v) {
+  const m = String(v).trim().match(/^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/);
+  if (!m) return null;
+  let h = m[1].toLowerCase();
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  return '#' + h;
+}
+
+function loadRecent() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch (e) { return []; }
+}
+
+function pushRecent(color) {
+  const c = parseHex(color);
+  if (!c) return;
+  // Palette colors already have swatches; only remember true custom picks.
+  if (PALETTE.includes(c) || c === NEUTRAL_NODE || c === NEUTRAL_LINK) return;
+  const list = [c, ...loadRecent().filter((x) => x !== c)].slice(0, 3);
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch (e) { /* non-fatal */ }
+  renderRecentRows();
+}
+
+function renderRecentInto(rowId, swId, onPick) {
+  const row = document.getElementById(rowId);
+  const box = document.getElementById(swId);
+  const list = loadRecent();
+  row.hidden = !list.length;
+  box.innerHTML = '';
+  list.forEach((c) => {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.style.background = c;
+    b.title = c;
+    b.addEventListener('click', () => onPick(c));
+    box.appendChild(b);
+  });
+}
+
+function renderRecentRows() {
+  renderRecentInto('npRecent', 'npRecentSwatches', (c) => applyNodeColor(c));
+  renderRecentInto('lpRecent', 'lpRecentSwatches', (c) => applyLinkColor(c));
+}
+
+/* =========================================================
    Flow (link) popover
    ========================================================= */
 
 const linkPopover = document.getElementById('linkPopover');
 const lpColor = document.getElementById('lpColor');
+const lpHex = document.getElementById('lpHex');
 const lpSwatches = document.getElementById('lpSwatches');
 let popoverLink = null; // data row of the flow being edited
+
+function applyLinkColor(c) {
+  if (!popoverLink) return;
+  popoverLink.color = c;
+  lpColor.value = c;
+  lpHex.value = c;
+  refreshLinkSwatchSelection(c);
+  markDirty();
+}
 
 function buildLinkSwatches() {
   lpSwatches.innerHTML = '';
@@ -937,13 +996,7 @@ function buildLinkSwatches() {
     b.style.background = color;
     b.dataset.color = color;
     b.title = color;
-    b.addEventListener('click', () => {
-      if (!popoverLink) return;
-      popoverLink.color = color;
-      lpColor.value = color;
-      refreshLinkSwatchSelection(color);
-      markDirty();
-    });
+    b.addEventListener('click', () => applyLinkColor(color));
     lpSwatches.appendChild(b);
   });
 }
@@ -959,7 +1012,9 @@ function openLinkPopover(l, clientX, clientY) {
   popoverLink = l.ref;
   document.getElementById('lpTitle').textContent = `${displayLabel(l.source)} → ${displayLabel(l.target)}`;
   lpColor.value = popoverLink.color || NEUTRAL_LINK;
+  lpHex.value = popoverLink.color || '';
   refreshLinkSwatchSelection(popoverLink.color || '');
+  renderRecentRows();
   hideTooltip();
 
   linkPopover.hidden = false;
@@ -980,12 +1035,18 @@ function closeLinkPopover() {
   popoverLink = null;
 }
 
-lpColor.addEventListener('input', () => {
-  if (!popoverLink) return;
-  popoverLink.color = lpColor.value;
-  refreshLinkSwatchSelection(lpColor.value);
-  markDirty();
+lpColor.addEventListener('input', () => applyLinkColor(lpColor.value));
+lpColor.addEventListener('change', () => pushRecent(lpColor.value));
+lpHex.addEventListener('input', () => {
+  const c = parseHex(lpHex.value);
+  if (c && popoverLink) {
+    popoverLink.color = c;
+    lpColor.value = c;
+    refreshLinkSwatchSelection(c);
+    markDirty();
+  }
 });
+lpHex.addEventListener('change', () => pushRecent(lpHex.value));
 
 document.getElementById('btnAutoLink').addEventListener('click', () => {
   if (popoverLink) {
@@ -1004,9 +1065,18 @@ document.getElementById('btnCloseLinkPopover').addEventListener('click', closeLi
 const popover = document.getElementById('nodePopover');
 const npLabel = document.getElementById('npLabel');
 const npColor = document.getElementById('npColor');
+const npHex = document.getElementById('npHex');
 const npLine2 = document.getElementById('npLine2');
 const npLine3 = document.getElementById('npLine3');
 const npSwatches = document.getElementById('npSwatches');
+
+function applyNodeColor(c) {
+  if (!popoverNode) return;
+  setNodeOverride(popoverNode, 'color', c === NEUTRAL_NODE ? undefined : c);
+  npColor.value = c;
+  npHex.value = c === NEUTRAL_NODE ? '' : c;
+  refreshSwatchSelection(c);
+}
 
 function buildSwatches() {
   npSwatches.innerHTML = '';
@@ -1016,11 +1086,7 @@ function buildSwatches() {
     b.style.background = color;
     b.dataset.color = color;
     b.title = color;
-    b.addEventListener('click', () => {
-      setNodeOverride(popoverNode, 'color', color === NEUTRAL_NODE ? undefined : color);
-      npColor.value = color;
-      refreshSwatchSelection(color);
-    });
+    b.addEventListener('click', () => applyNodeColor(color));
     npSwatches.appendChild(b);
   });
 }
@@ -1046,8 +1112,10 @@ function openNodePopover(name, clientX, clientY) {
   const o = doc.nodes[name] || {};
   npLabel.value = o.label || name;
   npColor.value = o.color || doc.settings.defaultNodeColor;
+  npHex.value = o.color || '';
   npLine2.value = o.line2 || '';
   npLine3.value = o.line3 || '';
+  renderRecentRows();
   const n = layoutCache && layoutCache.nodes.find((x) => x.name === name);
   npLine2.placeholder = n ? formatAmount(n.value, doc.settings) : '';
   refreshSwatchSelection(o.color || NEUTRAL_NODE);
@@ -1076,8 +1144,19 @@ npLabel.addEventListener('input', () => {
 });
 npColor.addEventListener('input', () => {
   setNodeOverride(popoverNode, 'color', npColor.value);
+  npHex.value = npColor.value;
   refreshSwatchSelection(npColor.value);
 });
+npColor.addEventListener('change', () => pushRecent(npColor.value));
+npHex.addEventListener('input', () => {
+  const c = parseHex(npHex.value);
+  if (c && popoverNode) {
+    setNodeOverride(popoverNode, 'color', c);
+    npColor.value = c;
+    refreshSwatchSelection(c);
+  }
+});
+npHex.addEventListener('change', () => pushRecent(npHex.value));
 npLine2.addEventListener('input', () => setNodeOverride(popoverNode, 'line2', npLine2.value));
 npLine3.addEventListener('input', () => setNodeOverride(popoverNode, 'line3', npLine3.value));
 

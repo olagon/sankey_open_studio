@@ -201,7 +201,11 @@
   </div>
   <div class="field">Color
     <div class="swatches" id="lpSwatches"></div>
-    <input type="color" id="lpColor" aria-label="Custom flow color">
+    <div class="swatch-row">
+      <input type="color" id="lpColor" aria-label="Custom flow color">
+      <input type="text" id="lpHex" class="hex-input" placeholder="#0e7490" maxlength="7" spellcheck="false" aria-label="Hex color code">
+    </div>
+    <div class="recent-row" id="lpRecent" hidden>Recent <span class="swatches" id="lpRecentSwatches"></span></div>
   </div>
   <div class="row-actions">
     <button id="btnAutoLink" class="btn btn-danger-ghost">Automatic</button>
@@ -221,7 +225,11 @@
   </label>
   <div class="field">Color
     <div class="swatches" id="npSwatches"></div>
-    <input type="color" id="npColor" aria-label="Custom color">
+    <div class="swatch-row">
+      <input type="color" id="npColor" aria-label="Custom color">
+      <input type="text" id="npHex" class="hex-input" placeholder="#0e7490" maxlength="7" spellcheck="false" aria-label="Hex color code">
+    </div>
+    <div class="recent-row" id="npRecent" hidden>Recent <span class="swatches" id="npRecentSwatches"></span></div>
   </div>
   <label class="field">Second line (blank = amount)
     <input type="text" id="npLine2" placeholder="">

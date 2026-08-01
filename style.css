@@ -467,6 +467,28 @@ body { display: flex; flex-direction: column; }
 .popover-head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
 
 .swatches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.swatch-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.hex-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  width: 94px;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+}
+.hex-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.recent-row .swatches { margin-top: 0; }
 .swatch {
   width: 23px;
   height: 23px;
