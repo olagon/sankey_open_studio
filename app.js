@@ -823,7 +823,14 @@ function displayLabel(n) {
   return (o && o.label) || n.name;
 }
 
+// While a node or flow editor is open, freeze hover effects so the browser's
+// color picker eyedropper samples the diagram's resting colors.
+function editorOpen() {
+  return !popover.hidden || !linkPopover.hidden;
+}
+
 function highlight(match) {
+  if (editorOpen()) return;
   const s = doc.settings;
   svg.querySelectorAll('.link').forEach((p, i) => {
     const l = layoutCache.links[i];
@@ -842,6 +849,7 @@ function unhighlight() {
 const tooltip = document.getElementById('tooltip');
 
 function showTooltip(e, html) {
+  if (editorOpen()) return;
   tooltip.innerHTML = html;
   tooltip.hidden = false;
   const pad = 14;
