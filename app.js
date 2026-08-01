@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.01';
+const APP_VERSION = '1.02';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -343,6 +343,16 @@ function wrapText(str, fontSize, maxW) {
   return lines;
 }
 
+// A "|" in a label forces a line break there; each piece still auto-wraps.
+function labelLines(label, fontSize, maxW) {
+  const out = [];
+  String(label).split(/\s*\|\s*/).forEach((seg) => {
+    if (!seg) return;
+    wrapText(seg, fontSize, maxW).forEach((line) => out.push(line));
+  });
+  return out.length ? out : [''];
+}
+
 function computeLayout(d) {
   const s = d.settings;
   const links = d.links.filter(
@@ -429,7 +439,10 @@ function computeLayout(d) {
   nodes.forEach((n) => {
     const o = d.nodes[n.name] || {};
     // Bold name line, then the amount line and optional note at regular weight.
-    maxLabelW = Math.max(maxLabelW, estTextWidth(o.label || n.name, fs, true));
+    // Manual breaks ("|") mean only the widest piece needs margin room.
+    String(o.label || n.name).split(/\s*\|\s*/).forEach((seg) => {
+      maxLabelW = Math.max(maxLabelW, estTextWidth(seg, fs, true));
+    });
     const line2 = o.line2 || (s.showValues ? formatAmount(n.value, s) : '');
     if (line2) maxLabelW = Math.max(maxLabelW, estTextWidth(line2, fs));
     if (o.line3) maxLabelW = Math.max(maxLabelW, estTextWidth(o.line3, Math.max(9, fs - 2)));
@@ -449,7 +462,7 @@ function computeLayout(d) {
   const lineH = fs * 1.35;
   nodes.forEach((n) => {
     const o = d.nodes[n.name] || {};
-    let count = wrapText(o.label || n.name, fs, maxLabelW - 16).length;
+    let count = labelLines(o.label || n.name, fs, maxLabelW - 16).length;
     if (o.line2 || s.showValues) count++;
     if (o.line3) count++;
     n.labelH = count * lineH;
@@ -761,7 +774,7 @@ function render() {
     const line2 = o.line2 || (s.showValues ? formatAmount(n.value, s) : '');
     const line3 = o.line3 || '';
 
-    const lines = wrapText(label, s.fontSize, maxLabelW - 16).map((t) => ({ t, kind: 'name' }));
+    const lines = labelLines(label, s.fontSize, maxLabelW - 16).map((t) => ({ t, kind: 'name' }));
     if (line2) lines.push({ t: line2, kind: 'value' });
     if (line3) lines.push({ t: line3, kind: 'note' });
 
@@ -840,7 +853,8 @@ function render() {
 
 function displayLabel(n) {
   const o = doc.nodes[n.name];
-  return (o && o.label) || n.name;
+  // Manual break markers read as plain spaces in tooltips and editor titles.
+  return ((o && o.label) || n.name).replace(/\s*\|\s*/g, ' ');
 }
 
 // While a node or flow editor is open, freeze hover effects so the browser's
