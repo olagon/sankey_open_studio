@@ -8,6 +8,11 @@
    Constants
    ========================================================= */
 
+/* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
+   by 0.1 (1.1, 1.2...), and the major number only changes when the project
+   owner says so. */
+const APP_VERSION = '1.0';
+
 const PALETTE = [
   '#2a78d6', // blue
   '#eb6834', // orange
@@ -1599,7 +1604,7 @@ function exportPNG() {
 }
 
 function exportJSON() {
-  const payload = Object.assign({ app: 'sankey-open-studio', version: 1 }, doc);
+  const payload = Object.assign({ app: 'sankey-open-studio', version: 1, appVersion: APP_VERSION }, doc);
   downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), fileName('json'));
 }
 
@@ -1666,6 +1671,8 @@ document.addEventListener('keydown', (e) => {
    ========================================================= */
 
 function init() {
+  const versionEl = document.getElementById('appVersion');
+  if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
   buildSwatches();
   buildLinkSwatches();
   buildPaletteGrid();
