@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.02';
+const APP_VERSION = '1.03';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -1193,6 +1193,20 @@ npHex.addEventListener('input', () => {
 npHex.addEventListener('change', () => pushRecent(npHex.value));
 npLine2.addEventListener('input', () => setNodeOverride(popoverNode, 'line2', npLine2.value));
 npLine3.addEventListener('input', () => setNodeOverride(popoverNode, 'line3', npLine3.value));
+
+// Pressing Enter in any editor field closes the editor, same as Done.
+popover.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.matches('input[type="text"]')) {
+    e.preventDefault();
+    closePopover();
+  }
+});
+linkPopover.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.matches('input[type="text"]')) {
+    e.preventDefault();
+    closeLinkPopover();
+  }
+});
 
 document.getElementById('btnResetNode').addEventListener('click', () => {
   if (popoverNode) {
