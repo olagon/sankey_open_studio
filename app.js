@@ -303,8 +303,20 @@ function parsePasted(text) {
    Sankey layout (hand rolled, no dependencies)
    ========================================================= */
 
-function estTextWidth(str, fontSize) {
-  return String(str || '').length * fontSize * 0.62;
+// Measure text for real using a canvas, so wrapping and margins match what
+// actually renders. Falls back to a character estimate if measuring fails.
+const measureCtx = document.createElement('canvas').getContext('2d');
+const MEASURE_FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+
+function estTextWidth(str, fontSize, bold) {
+  const text = String(str || '');
+  try {
+    measureCtx.font = (bold ? '700 ' : '400 ') + fontSize + 'px ' + MEASURE_FONT;
+    const w = measureCtx.measureText(text).width;
+    // Guard against a browser that rejected the font string.
+    if (w > text.length * fontSize * 0.25 || !text.length) return w;
+  } catch (e) { /* fall through to the estimate */ }
+  return text.length * fontSize * 0.62;
 }
 
 // Greedy word wrap to at most 3 lines, based on the estimated width.
@@ -315,7 +327,7 @@ function wrapText(str, fontSize, maxW) {
   let cur = words[0];
   for (let i = 1; i < words.length; i++) {
     const test = cur + ' ' + words[i];
-    if (estTextWidth(test, fontSize) > maxW && lines.length < 2) {
+    if (estTextWidth(test, fontSize, true) > maxW && lines.length < 2) {
       lines.push(cur);
       cur = words[i];
     } else {
@@ -411,8 +423,11 @@ function computeLayout(d) {
   let maxLabelW = 40;
   nodes.forEach((n) => {
     const o = d.nodes[n.name] || {};
-    const lines = [o.label || n.name, o.line2 || 'X', o.line3 || ''];
-    lines.forEach((t) => { maxLabelW = Math.max(maxLabelW, estTextWidth(t, fs)); });
+    // Bold name line, then the amount line and optional note at regular weight.
+    maxLabelW = Math.max(maxLabelW, estTextWidth(o.label || n.name, fs, true));
+    const line2 = o.line2 || (s.showValues ? formatAmount(n.value, s) : '');
+    if (line2) maxLabelW = Math.max(maxLabelW, estTextWidth(line2, fs));
+    if (o.line3) maxLabelW = Math.max(maxLabelW, estTextWidth(o.line3, Math.max(9, fs - 2)));
   });
   maxLabelW = Math.min(maxLabelW + 14, s.width * 0.3);
   const outside = s.labelPosition === 'outside';
