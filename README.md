@@ -1,6 +1,6 @@
 # Sankey Open Studio
 
-Current version: **1.0**
+Current version: **1.01**
 
 A free, open source sankey diagram builder that runs entirely in your browser. No accounts, no servers, no build step. Your data never leaves your computer.
 

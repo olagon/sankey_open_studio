@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.0';
+const APP_VERSION = '1.01';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -1655,6 +1655,14 @@ document.getElementById('importFile').addEventListener('change', (e) => {
 /* =========================================================
    Keyboard
    ========================================================= */
+
+// Clicking anywhere outside an open editor closes it, same as pressing Done.
+// Clicks on nodes and flows are exempt because they open or re-target editors.
+document.addEventListener('click', (e) => {
+  const onDiagramItem = e.target.closest && (e.target.closest('.node-rect') || e.target.closest('.link'));
+  if (!popover.hidden && !popover.contains(e.target) && !onDiagramItem) closePopover();
+  if (!linkPopover.hidden && !linkPopover.contains(e.target) && !onDiagramItem) closeLinkPopover();
+});
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
