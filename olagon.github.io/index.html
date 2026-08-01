@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olin Lagon — Open Source Projects</title>
+<meta name="description" content="Free and open source projects by Olin Lagon. Built in Hawaiʻi, free for anyone to use.">
+<link rel="icon" href="https://github.com/olagon.png">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Y7K2NBKKDZ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-Y7K2NBKKDZ');
+</script>
+<style>
+  :root {
+    --page: #ede5d3;
+    --surface: #fbf7ec;
+    --ink: #33281a;
+    --ink-2: #635640;
+    --muted: #9a8c70;
+    --accent: #0e7490;
+    --accent-deep: #0a5a70;
+    --hairline: #ddd1b8;
+    --grad: linear-gradient(135deg, #0e8aa5, #0a5a70);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1000px 420px at 90% -8%, rgba(14, 116, 144, 0.10), transparent 60%),
+      linear-gradient(180deg, #f2ecdd, #e4d9c1);
+    background-attachment: fixed;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 44px 20px 80px; }
+
+  .hero { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
+  .hero img {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    border: 3px solid var(--surface);
+    box-shadow: 0 8px 24px rgba(61, 44, 30, 0.25);
+  }
+  .hero h1 { font-size: 28px; margin: 0; }
+  .hero p { margin: 4px 0 0; color: var(--ink-2); max-width: 560px; }
+  .hero-links { display: flex; gap: 9px; margin-top: 10px; flex-wrap: wrap; }
+  .pill {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+    color: #fff;
+    background: var(--grad);
+    box-shadow: 0 4px 14px rgba(14, 116, 144, 0.3);
+  }
+  .pill.ghost {
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid rgba(61, 44, 30, 0.22);
+    box-shadow: none;
+  }
+  .pill:hover { filter: brightness(1.08); }
+
+  h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: #7c5b33;
+    margin: 36px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  h2::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--grad);
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(61, 44, 30, 0.08);
+    padding: 18px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(61, 44, 30, 0.18); }
+  .card h3 { margin: 0; font-size: 16px; color: var(--accent-deep); word-break: break-word; }
+  .thumb {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 10px;
+    border: 1px solid var(--hairline);
+    background: #fff;
+  }
+  .card p { margin: 0; font-size: 13.5px; color: var(--ink-2); flex: 1; }
+  .meta { display: flex; align-items: center; gap: 14px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .live {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .status { color: var(--muted); font-size: 14px; padding: 20px 4px; }
+  .status a { color: var(--accent); font-weight: 600; }
+  .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 40px; }
+  .foot a { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img src="https://github.com/olagon.png" alt="Olin Lagon">
+    <div>
+      <h1>Olin Lagon</h1>
+      <p>Social entrepreneur and builder in Hawaiʻi. These are my public, open source projects, free for anyone to use, copy, and improve.</p>
+      <div class="hero-links">
+        <a class="pill" href="https://github.com/olagon" target="_blank" rel="noopener">GitHub</a>
+        <a class="pill ghost" href="https://www.linkedin.com/in/olinlagon" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+  </header>
+
+  <h2>Open source projects</h2>
+  <div id="status" class="status">Loading projects from GitHub…</div>
+  <div id="grid" class="grid"></div>
+
+  <p class="foot">Made with aloha in Hawaiʻi · <a href="https://github.com/olagon" target="_blank" rel="noopener">github.com/olagon</a></p>
+</div>
+
+<script>
+'use strict';
+
+/* The featured projects render instantly from this list with local thumbnails,
+   so the page never goes blank if GitHub's API is rate limited. The API call
+   below only adds freshness info and any repos published later. */
+const PROJECTS = [
+  { key: 'sankey_open_studio', title: 'Sankey Open Studio',
+    live: 'https://olagon.github.io/sankey_open_studio/',
+    summary: 'Free sankey diagram builder that runs entirely in your browser. Paste flows from a spreadsheet, style every node and flow, and export crisp SVG and PNG images. No accounts, your data never leaves your computer.' },
+  { key: 'holua', title: 'Hōlua',
+    live: 'https://olagon.github.io/holua/',
+    summary: 'First person hōlua sledding game. Race a papa hōlua down a Kona mountainside at sunset and launch off a sea cliff. One file, fully procedural 3D.' },
+  { key: 'learnhawaiian', title: 'ʻŌlelo Daily',
+    live: 'https://olelodaily.com/',
+    summary: 'Learn ʻōlelo Hawaiʻi by mastering the 2,000 most useful words. Short daily rounds with two way recall and spaced repetition, over 2,600 entries with correct ʻokina and kahakō.' },
+  { key: 'ShiftyWords.com', title: 'ShiftyWords',
+    live: 'https://shiftywords.com/',
+    summary: 'A word puzzle game of uncovering hidden words, level by level, all the way up to Impossible. Playable in English, Hawaiian, French, Spanish, Russian, and Ukrainian.' },
+  { key: 'huakai', title: 'Huakaʻi',
+    live: 'https://olagon.github.io/huakai/',
+    summary: 'A geography journey through Hawaiʻi. See a photo of a real place, then find its island, moku, and ahupuaʻa on the live State GIS map. 156 photographed locations across all eight islands.' },
+  { key: 'rootz', title: 'Rootz',
+    live: 'https://olagon.github.io/rootz/',
+    summary: 'A daily Hawaiian word sorting puzzle. Sort 16 words into four hidden groups of four, with daily streaks, a puzzle archive, and offline play on your phone.' },
+  { key: 'hana', title: 'hana',
+    live: 'https://olagon.github.io/hana/',
+    summary: 'A paste-anything AI task manager. Drop in an email or meeting notes and hana pulls out the tasks, dates them, and keeps unfinished work moving forward.' },
+  { key: 'hana-local', title: 'hana local',
+    live: 'https://olagon.github.io/hana-local/',
+    summary: 'A fully private, on-device task manager. A small open source language model runs in your own browser and turns messy text into a clean task list. Your words never leave your device.' },
+  { key: 'pegasus', title: 'Pegasus',
+    live: 'https://olagon.github.io/pegasus/',
+    summary: 'Learn the Major System, the mnemonic technique that turns numbers into memorable words. Spaced repetition, drills, streaks, and a memory test, all in one file.' },
+];
+
+// Strip any sentence that mentions Claude from GitHub descriptions.
+function cleanDescription(text) {
+  if (!text) return '';
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => !/claude/i.test(sentence))
+    .join(' ')
+    .trim();
+}
+
+function timeAgo(iso) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (days < 1) return 'today';
+  if (days < 31) return days + (days === 1 ? ' day ago' : ' days ago');
+  const months = Math.floor(days / 30.4);
+  if (months < 12) return months + (months === 1 ? ' month ago' : ' months ago');
+  const years = Math.floor(months / 12);
+  return years + (years === 1 ? ' year ago' : ' years ago');
+}
+
+const grid = document.getElementById('grid');
+
+function makeCard(p) {
+  const card = document.createElement('a');
+  card.className = 'card';
+  card.dataset.key = p.key;
+  card.href = p.live;
+  card.target = '_blank';
+  card.rel = 'noopener';
+
+  const img = document.createElement('img');
+  img.className = 'thumb';
+  img.loading = 'lazy';
+  img.alt = p.title + ' screenshot';
+  img.src = 'thumbs/' + encodeURIComponent(p.key) + '.jpg';
+  img.addEventListener('error', () => img.remove());
+  card.appendChild(img);
+
+  const h3 = document.createElement('h3');
+  h3.textContent = p.title;
+  card.appendChild(h3);
+
+  const desc = document.createElement('p');
+  desc.textContent = p.summary;
+  card.appendChild(desc);
+
+  const live = document.createElement('span');
+  live.className = 'live';
+  live.textContent = 'Access: ' + p.live.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  card.appendChild(live);
+
+  const src = document.createElement('span');
+  src.className = 'meta';
+  src.textContent = 'Source: github.com/olagon/' + p.key;
+  card.appendChild(src);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.dataset.metaFor = p.key;
+  card.appendChild(meta);
+  return card;
+}
+
+// 1. Instant render of the featured projects. No network needed.
+document.getElementById('status').remove();
+PROJECTS.forEach((p) => grid.appendChild(makeCard(p)));
+
+// 2. Best-effort enrichment from GitHub: stars, last-updated, and any new repos.
+async function enrich() {
+  try {
+    const res = await fetch('https://api.github.com/users/olagon/repos?per_page=100&sort=pushed');
+    if (!res.ok) return;
+    const repos = await res.json();
+    const known = new Set(PROJECTS.map((p) => p.key));
+
+    repos.forEach((r) => {
+      if (known.has(r.name)) {
+        const meta = grid.querySelector('[data-meta-for="' + CSS.escape(r.name) + '"]');
+        if (!meta) return;
+        if (r.stargazers_count > 0) {
+          const stars = document.createElement('span');
+          stars.textContent = '★ ' + r.stargazers_count;
+          meta.appendChild(stars);
+        }
+        const upd = document.createElement('span');
+        upd.textContent = 'Updated ' + timeAgo(r.pushed_at);
+        meta.appendChild(upd);
+      } else if (!r.fork && !r.archived && r.size > 0 && r.name.toLowerCase() !== 'olagon.github.io') {
+        grid.appendChild(makeCard({
+          key: r.name,
+          title: r.name.replace(/\.com$/i, '').replace(/[-_]/g, ' '),
+          live: r.homepage || 'https://olagon.github.io/' + r.name + '/',
+          summary: cleanDescription(r.description) || 'A new project. Description coming soon.',
+        }));
+      }
+    });
+  } catch (e) { /* the grid is already rendered; nothing to do */ }
+}
+
+enrich();
+</script>
+</body>
+</html>

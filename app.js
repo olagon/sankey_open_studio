@@ -79,7 +79,7 @@ const PRESETS = [
   { name: 'Aloha', colors: ['#0e7490', '#f97316', '#16a34a', '#e11d48', '#eab308', '#0369a1'] },
 ];
 
-const CREDIT_TEXT = 'Created with https://olagon.github.io/sankey_open_studio/';
+const CREDIT_TEXT = 'Created with Sankey Open Studio https://olagon.github.io/';
 
 /* Anonymous usage analytics. Only event names and counts are sent — never
    diagram content, node names, or amounts. No-op when offline or self-hosted
