@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.04';
+const APP_VERSION = '1.05';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -1387,7 +1387,10 @@ function buildPaletteGrid() {
       chip.style.background = c;
       b.appendChild(chip);
     });
-    b.addEventListener('click', () => applyPreset(preset.colors));
+    b.addEventListener('click', () => {
+      applyPreset(preset.colors);
+      track('preset_applied', { preset: preset.name });
+    });
     grid.appendChild(b);
   });
 }
@@ -1512,6 +1515,7 @@ function renderDiagramList() {
       src.createdAt = Date.now();
       persistDoc(src);
       renderDiagramList();
+      track('diagram_duplicated');
     });
 
     const del = document.createElement('button');
