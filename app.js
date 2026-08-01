@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.03';
+const APP_VERSION = '1.04';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -84,7 +84,7 @@ const PRESETS = [
   { name: 'Aloha', colors: ['#0e7490', '#f97316', '#16a34a', '#e11d48', '#eab308', '#0369a1'] },
 ];
 
-const CREDIT_TEXT = 'Created with Sankey Open Studio https://olagon.github.io/';
+const CREDIT_PARTS = ['Created with ', 'Sankey Open Studio', '  ·  OLagon.GitHub.io'];
 
 /* Anonymous usage analytics. Only event names and counts are sent — never
    diagram content, node names, or amounts. No-op when offline or self-hosted
@@ -707,14 +707,19 @@ function render() {
   }
 
   // Credit line inside the image (appears in exports, can be turned off).
+  // The tool name is bolder and darker so it reads as the thing to search for.
   if (s.showCredit) {
-    el('text', {
+    const credit = el('text', {
       x: s.width / 2,
       y: s.height - 12,
       'text-anchor': 'middle',
       'font-size': 11,
       fill: MUTED,
-    }, svg).textContent = CREDIT_TEXT;
+    }, svg);
+    el('tspan', {}, credit).textContent = CREDIT_PARTS[0];
+    const name = el('tspan', { 'font-weight': 700, fill: INK_2, 'font-size': 12 }, credit);
+    name.textContent = CREDIT_PARTS[1];
+    el('tspan', {}, credit).textContent = CREDIT_PARTS[2];
   }
 
   if (!layoutCache) return;
