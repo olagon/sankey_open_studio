@@ -208,7 +208,7 @@ function sampleDoc() {
     settings: Object.assign({}, DEFAULT_SETTINGS, {
       suffix: 'K hrs',
       width: 1200,
-      height: 750,
+      height: 900,
       nodePadding: 18,
       linkColorMode: 'source',
       linkOpacity: 0.35,
@@ -424,6 +424,17 @@ function computeLayout(d) {
   const innerW = Math.max(80, s.width - marginL - marginR);
   const innerH = Math.max(80, s.height - marginT - marginB);
 
+  // Estimated label block height per node, so the layout can keep nodes far
+  // enough apart for their labels to sit beside them without drifting.
+  const lineH = fs * 1.35;
+  nodes.forEach((n) => {
+    const o = d.nodes[n.name] || {};
+    let count = wrapText(o.label || n.name, fs, maxLabelW - 16).length;
+    if (o.line2 || s.showValues) count++;
+    if (o.line3) count++;
+    n.labelH = count * lineH;
+  });
+
   // ---- Horizontal positions ----
   const colX = (depth) =>
     marginL + (maxDepth === 0 ? innerW / 2 : (depth / maxDepth) * (innerW - s.nodeWidth));
@@ -447,6 +458,28 @@ function computeLayout(d) {
     if (sum > 0) k = Math.min(k, (innerH - (col.length - 1) * pad) / sum);
   });
   if (!Number.isFinite(k) || k <= 0) return null;
+
+  // If a column's labels need more room than its bars leave, gently shrink
+  // the scale (down to a floor) so labels can sit beside their own nodes.
+  function columnNeeds(kTest) {
+    let worst = 0;
+    columns.forEach((col) => {
+      let total = (col.length - 1) * pad;
+      col.forEach((n) => { total += Math.max(1, n.value * kTest, n.labelH); });
+      worst = Math.max(worst, total);
+    });
+    return worst;
+  }
+  if (columnNeeds(k) > innerH) {
+    let lo = k * 0.4;
+    let hi = k;
+    for (let i = 0; i < 10; i++) {
+      const mid = (lo + hi) / 2;
+      if (columnNeeds(mid) > innerH) hi = mid;
+      else lo = mid;
+    }
+    k = lo;
+  }
 
   // ---- Initial stacking (input order), centered ----
   columns.forEach((col) => {
@@ -490,25 +523,37 @@ function computeLayout(d) {
     }
   }
 
+  // Minimum gap between two stacked nodes: the regular padding, or enough
+  // room for both labels to stay centered on their nodes, whichever is more.
+  function gapFor(a, b) {
+    const hA = a.y1 - a.y0;
+    const hB = b.y1 - b.y0;
+    const labelGap = (a.labelH + b.labelH) / 2 + 4 - (hA + hB) / 2;
+    return Math.max(pad, labelGap);
+  }
+
   function resolveCollisions() {
     columns.forEach((col) => {
       col.sort((a, b) => a.y0 - b.y0);
       let y = marginT;
+      let prev = null;
       // Push down.
       col.forEach((n) => {
-        const dy = y - n.y0;
+        const minY = prev ? prev.y1 + gapFor(prev, n) : y;
+        const dy = minY - n.y0;
         if (dy > 0) { n.y0 += dy; n.y1 += dy; }
-        y = n.y1 + pad;
+        prev = n;
       });
       // Push back up if we overflowed the bottom.
-      let overflow = y - pad - (marginT + innerH);
-      if (overflow > 0) {
-        y = marginT + innerH;
+      const last = col[col.length - 1];
+      if (last && last.y1 > marginT + innerH) {
+        let limit = marginT + innerH;
         for (let i = col.length - 1; i >= 0; i--) {
           const n = col[i];
-          const dy = n.y1 - y;
+          const dy = n.y1 - limit;
           if (dy > 0) { n.y0 -= dy; n.y1 -= dy; }
-          y = n.y0 - pad;
+          const above = col[i - 1];
+          limit = above ? n.y0 - gapFor(above, n) : n.y0;
         }
       }
     });
