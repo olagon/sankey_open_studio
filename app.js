@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.1';
+const APP_VERSION = '1.11';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -652,6 +652,17 @@ function computeLayout(d) {
     }
   });
 
+  // Never let a node escape the canvas (e.g. after a title change shrinks
+  // the drawing area). A node that stays on screen stays selectable.
+  nodes.forEach((n) => {
+    const h = n.y1 - n.y0;
+    const w = n.x1 - n.x0;
+    if (n.y0 < 4) { n.y0 = 4; n.y1 = 4 + h; }
+    if (n.y1 > s.height - 4) { n.y1 = s.height - 4; n.y0 = n.y1 - h; }
+    if (n.x0 < 2) { n.x0 = 2; n.x1 = 2 + w; }
+    if (n.x1 > s.width - 2) { n.x1 = s.width - 2; n.x0 = n.x1 - w; }
+  });
+
   // ---- Link vertical offsets at each node ----
   nodes.forEach((n) => {
     n.sourceLinks.sort((a, b) => center(a.target) - center(b.target));
@@ -965,14 +976,23 @@ function bindDrag(gNodes) {
       const o = doc.nodes[name] || (doc.nodes[name] = {});
       const baseDx = o.dx || 0;
       const baseDy = o.dy || 0;
+      const ln = layoutCache && layoutCache.nodes.find((x) => x.name === name);
+      const startY0 = ln ? ln.y0 : 0;
+      const startX0 = ln ? ln.x0 : 0;
+      const nodeH = ln ? ln.y1 - ln.y0 : 0;
+      const nodeW = ln ? ln.x1 - ln.x0 : 0;
       let moved = false;
       let raf = null;
 
       function onMove(ev) {
-        const dx = (ev.clientX - startX) * scale;
-        const dy = (ev.clientY - startY) * scale;
+        let dx = (ev.clientX - startX) * scale;
+        let dy = (ev.clientY - startY) * scale;
         if (!moved && Math.abs(ev.clientX - startX) + Math.abs(ev.clientY - startY) > 3) moved = true;
         if (!moved) return;
+        // Clamp so the node cannot be dragged off the canvas.
+        const S = doc.settings;
+        dy = Math.max(4 - startY0, Math.min(dy, S.height - 4 - nodeH - startY0));
+        dx = Math.max(2 - startX0, Math.min(dx, S.width - 2 - nodeW - startX0));
         o.dx = baseDx + dx;
         o.dy = baseDy + dy;
         if (!raf) {
