@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.05';
+const APP_VERSION = '1.1';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -57,6 +57,7 @@ const DEFAULT_SETTINGS = {
   showTitle: true,
   titleSize: 26,
   titleColor: '#1c5cab',
+  groupBelowPct: 0, // 0 = off; otherwise combine end nodes under this % of total
 };
 
 /* 20 color presets. Clicking one colors every node, cycling through the set
@@ -353,11 +354,50 @@ function labelLines(label, fontSize, maxW) {
   return out.length ? out : [''];
 }
 
+/* Display-time grouping: end nodes (pure sources or pure sinks) smaller than
+   the threshold merge into "Other Sources" / "Other Targets". The data table
+   keeps every original row; only the drawing is combined. */
+function groupSmallEnds(links, pct) {
+  const inSum = new Map();
+  const outSum = new Map();
+  links.forEach((l) => {
+    outSum.set(l.from, (outSum.get(l.from) || 0) + l.amount);
+    inSum.set(l.to, (inSum.get(l.to) || 0) + l.amount);
+  });
+  let total = 0;
+  outSum.forEach((v, name) => { if (!inSum.has(name)) total += v; });
+  if (!total) total = links.reduce((a, l) => a + l.amount, 0);
+  const cut = (total * pct) / 100;
+  const smallSources = new Set();
+  const smallTargets = new Set();
+  outSum.forEach((v, name) => { if (!inSum.has(name) && v < cut) smallSources.add(name); });
+  inSum.forEach((v, name) => { if (!outSum.has(name) && v < cut) smallTargets.add(name); });
+  // Grouping one lone node has no benefit.
+  if (smallSources.size < 2) smallSources.clear();
+  if (smallTargets.size < 2) smallTargets.clear();
+  if (!smallSources.size && !smallTargets.size) return links;
+  const merged = new Map();
+  links.forEach((l) => {
+    const from = smallSources.has(l.from) ? 'Other Sources' : l.from;
+    const to = smallTargets.has(l.to) ? 'Other Targets' : l.to;
+    const key = from + ' ' + to;
+    const m = merged.get(key);
+    if (m) {
+      m.amount += l.amount;
+      m.rows.push(l);
+    } else {
+      merged.set(key, { from, to, amount: l.amount, color: l.color, rows: [l] });
+    }
+  });
+  return [...merged.values()];
+}
+
 function computeLayout(d) {
   const s = d.settings;
-  const links = d.links.filter(
+  let links = d.links.filter(
     (l) => l.from && l.to && Number.isFinite(l.amount) && l.amount > 0 && l.from !== l.to
   );
+  if (s.groupBelowPct > 0) links = groupSmallEnds(links, s.groupBelowPct);
   if (!links.length) return null;
 
   // ---- Collect nodes in order of first appearance ----
@@ -1018,9 +1058,16 @@ const lpHex = document.getElementById('lpHex');
 const lpSwatches = document.getElementById('lpSwatches');
 let popoverLink = null; // data row of the flow being edited
 
+// Set (or clear) a flow's color. For a grouped ribbon the color is written
+// through to every underlying data row so it survives re-rendering.
+function setFlowColor(row, c) {
+  if (c) row.color = c; else delete row.color;
+  if (row.rows) row.rows.forEach((r) => { if (c) r.color = c; else delete r.color; });
+}
+
 function applyLinkColor(c) {
   if (!popoverLink) return;
-  popoverLink.color = c;
+  setFlowColor(popoverLink, c);
   lpColor.value = c;
   lpHex.value = c;
   refreshLinkSwatchSelection(c);
@@ -1079,7 +1126,7 @@ lpColor.addEventListener('change', () => pushRecent(lpColor.value));
 lpHex.addEventListener('input', () => {
   const c = parseHex(lpHex.value);
   if (c && popoverLink) {
-    popoverLink.color = c;
+    setFlowColor(popoverLink, c);
     lpColor.value = c;
     refreshLinkSwatchSelection(c);
     markDirty();
@@ -1089,7 +1136,7 @@ lpHex.addEventListener('change', () => pushRecent(lpHex.value));
 
 document.getElementById('btnAutoLink').addEventListener('click', () => {
   if (popoverLink) {
-    delete popoverLink.color;
+    setFlowColor(popoverLink, undefined);
     markDirty();
   }
   closeLinkPopover();
@@ -1355,6 +1402,7 @@ const inSuffix = bindSetting('setSuffix', 'suffix');
 const inNodeWidth = bindSetting('setNodeWidth', 'nodeWidth', { number: true, showIn: 'nodeWidthVal' });
 const inNodePad = bindSetting('setNodePad', 'nodePadding', { number: true, showIn: 'nodePadVal' });
 const inLinkOpacity = bindSetting('setLinkOpacity', 'linkOpacity', { number: true, showIn: 'linkOpacityVal' });
+const inGroupBelow = bindSetting('setGroupBelow', 'groupBelowPct', { number: true, event: 'change' });
 const inNodeColor = bindSetting('setNodeColor', 'defaultNodeColor');
 const inLinkColorMode = bindSetting('setLinkColorMode', 'linkColorMode');
 
@@ -1448,6 +1496,7 @@ function syncSettingsUI() {
   document.getElementById('nodePadVal').textContent = s.nodePadding;
   inLinkOpacity.value = s.linkOpacity;
   document.getElementById('linkOpacityVal').textContent = s.linkOpacity;
+  inGroupBelow.value = String(s.groupBelowPct || 0);
   inNodeColor.value = s.defaultNodeColor;
   inLinkColorMode.value = s.linkColorMode;
   inSize.value = `${s.width}x${s.height}`;

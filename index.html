@@ -133,6 +133,16 @@
         <label class="field">Flow opacity <span id="linkOpacityVal" class="val"></span>
           <input type="range" id="setLinkOpacity" min="0.1" max="1" step="0.05">
         </label>
+        <label class="field">Combine small end nodes
+          <select id="setGroupBelow">
+            <option value="0">Off (show every node)</option>
+            <option value="0.5">Below 0.5% of total</option>
+            <option value="1">Below 1% of total</option>
+            <option value="2">Below 2% of total</option>
+            <option value="5">Below 5% of total</option>
+          </select>
+        </label>
+        <p class="hint">Small sources or targets merge into an "Other Sources" or "Other Targets" node in the drawing. Your data table keeps every row.</p>
         <button id="btnResetLayout" class="btn btn-wide">Reset node positions</button>
         <p class="hint">Tip: drag any node on the diagram to move it.</p>
       </div>
