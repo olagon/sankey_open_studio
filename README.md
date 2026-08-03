@@ -61,7 +61,7 @@ Issues and pull requests are welcome. The whole app is three files with no tooli
 
 ## Credits
 
-Made by [Olin Lagon](https://www.linkedin.com/in/olinlagon).
+Made by [Olin Lagon](https://www.linkedin.com/in/olinlagon). Built with [Claude](https://claude.com), Anthropic's AI, pair programming under Olin's direction.
 
 ## License
 
