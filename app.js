@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.12';
+const APP_VERSION = '1.13';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -554,13 +554,22 @@ function computeLayout(d) {
     k = lo;
   }
 
+  // Node heights are proportional, but never shorter than the sum of their
+  // flows' minimum draw widths (each flow renders at least 1px), so ribbons
+  // can never overrun a bar.
+  nodes.forEach((n) => {
+    const sumIn = n.targetLinks.reduce((a, l) => a + Math.max(1, l.value * k), 0);
+    const sumOut = n.sourceLinks.reduce((a, l) => a + Math.max(1, l.value * k), 0);
+    n.minH = Math.max(1, n.value * k, sumIn, sumOut);
+  });
+
   // ---- Initial stacking (input order), centered ----
   columns.forEach((col) => {
-    const totalH = col.reduce((acc, n) => acc + n.value * k, 0) + (col.length - 1) * pad;
+    const totalH = col.reduce((acc, n) => acc + n.minH, 0) + (col.length - 1) * pad;
     let y = marginT + (innerH - totalH) / 2;
     col.forEach((n) => {
       n.y0 = y;
-      n.y1 = y + Math.max(1, n.value * k);
+      n.y1 = y + n.minH;
       y = n.y1 + pad;
     });
   });
@@ -726,6 +735,12 @@ function linkColor(l) {
   return NEUTRAL_LINK;
 }
 
+// Colored flows render more transparent than neutral gray ones so labels
+// crossing them stay readable.
+function linkOpacityEff() {
+  return doc.settings.linkOpacity * (doc.settings.linkColorMode === 'neutral' ? 1 : 0.7);
+}
+
 function linkPath(l) {
   const x0 = l.source.x1;
   const x1 = l.target.x0;
@@ -784,7 +799,7 @@ function render() {
       d: linkPath(l),
       stroke: linkColor(l),
       'stroke-width': l.width,
-      'stroke-opacity': s.linkOpacity,
+      'stroke-opacity': linkOpacityEff(),
       fill: 'none',
     }, gLinks);
     path.addEventListener('mousemove', (e) => {
@@ -891,6 +906,10 @@ function render() {
       'text-anchor': b.anchor,
       'font-size': s.fontSize,
       fill: INK,
+      stroke: '#fcfcfb',
+      'stroke-width': 3,
+      'paint-order': 'stroke',
+      'stroke-linejoin': 'round',
     }, gLabels);
     b.lines.forEach((line, i) => {
       const tspan = el('tspan', { x: b.x, dy: i === 0 ? 0 : lineH }, text);
@@ -921,16 +940,16 @@ function editorOpen() {
 
 function highlight(match) {
   if (editorOpen()) return;
-  const s = doc.settings;
+  const base = linkOpacityEff();
   svg.querySelectorAll('.link').forEach((p, i) => {
     const l = layoutCache.links[i];
-    p.setAttribute('stroke-opacity', match(l) ? Math.min(1, s.linkOpacity + 0.25) : s.linkOpacity * 0.35);
+    p.setAttribute('stroke-opacity', match(l) ? Math.min(1, base + 0.25) : base * 0.35);
   });
 }
 
 function unhighlight() {
   svg.querySelectorAll('.link').forEach((p) => {
-    p.setAttribute('stroke-opacity', doc.settings.linkOpacity);
+    p.setAttribute('stroke-opacity', linkOpacityEff());
   });
 }
 
