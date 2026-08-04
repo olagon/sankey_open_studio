@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.23';
+const APP_VERSION = '1.24';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -56,7 +56,7 @@ const DEFAULT_SETTINGS = {
   showCredit: true,
   showTitle: true,
   titleSize: 26,
-  titleColor: '#1c5cab',
+  titleColor: '#0b0b0b',
   groupBelowPct: 0, // 0 = off; otherwise combine end nodes under this % of total
   layoutMode: 'flow', // 'flow' hugs the flows; 'spread' fills each column evenly
 };
