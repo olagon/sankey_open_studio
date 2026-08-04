@@ -77,9 +77,14 @@
         <label class="field">Title size <span id="titleSizeVal" class="val"></span>
           <input type="range" id="setTitleSize" min="14" max="48" step="1">
         </label>
-        <label class="field">Title color
-          <input type="color" id="setTitleColor">
-        </label>
+        <div class="field">Title color
+          <div class="swatches" id="tcSwatches"></div>
+          <div class="swatch-row">
+            <input type="color" id="setTitleColor" aria-label="Title color">
+            <input type="text" id="tcHex" class="hex-input" placeholder="#1c5cab" maxlength="7" spellcheck="false" aria-label="Title hex color">
+          </div>
+          <div class="recent-row" id="tcRecent" hidden>Recent <span class="swatches" id="tcRecentSwatches"></span></div>
+        </div>
         <p class="hint">The title text is the diagram name at the top of the page.</p>
       </div>
     </details>
@@ -154,9 +159,14 @@
         <div class="field">Color presets (click to color all nodes)
           <div class="palette-grid" id="paletteGrid"></div>
         </div>
-        <label class="field">Default node color
-          <input type="color" id="setNodeColor">
-        </label>
+        <div class="field">Default node color
+          <div class="swatches" id="ncSwatches"></div>
+          <div class="swatch-row">
+            <input type="color" id="setNodeColor" aria-label="Default node color">
+            <input type="text" id="ncHex" class="hex-input" placeholder="#55534f" maxlength="7" spellcheck="false" aria-label="Default node hex color">
+          </div>
+          <div class="recent-row" id="ncRecent" hidden>Recent <span class="swatches" id="ncRecentSwatches"></span></div>
+        </div>
         <label class="field">Flow color
           <select id="setLinkColorMode">
             <option value="neutral">Neutral gray</option>

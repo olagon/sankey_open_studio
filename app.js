@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.11';
+const APP_VERSION = '1.12';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -1066,6 +1066,28 @@ function renderRecentInto(rowId, swId, onPick) {
 function renderRecentRows() {
   renderRecentInto('npRecent', 'npRecentSwatches', (c) => applyNodeColor(c));
   renderRecentInto('lpRecent', 'lpRecentSwatches', (c) => applyLinkColor(c));
+  renderRecentInto('tcRecent', 'tcRecentSwatches', (c) => applyTitleColor(c));
+  renderRecentInto('ncRecent', 'ncRecentSwatches', (c) => applyDefaultNodeColor(c));
+}
+
+// Generic swatch strip used by the sidebar color fields.
+function buildSwatchRow(containerId, colors, onPick) {
+  const box = document.getElementById(containerId);
+  colors.forEach((color) => {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.style.background = color;
+    b.dataset.color = color;
+    b.title = color;
+    b.addEventListener('click', () => onPick(color));
+    box.appendChild(b);
+  });
+}
+
+function refreshSwatchIn(containerId, color) {
+  document.getElementById(containerId).querySelectorAll('.swatch').forEach((b) => {
+    b.classList.toggle('selected', b.dataset.color.toLowerCase() === String(color || '').toLowerCase());
+  });
 }
 
 /* =========================================================
@@ -1426,6 +1448,62 @@ const inGroupBelow = bindSetting('setGroupBelow', 'groupBelowPct', { number: tru
 const inNodeColor = bindSetting('setNodeColor', 'defaultNodeColor');
 const inLinkColorMode = bindSetting('setLinkColorMode', 'linkColorMode');
 
+/* ---------- Title color field (swatches + hex + recent) ---------- */
+
+const tcHex = document.getElementById('tcHex');
+
+function applyTitleColor(c) {
+  doc.settings.titleColor = c;
+  inTitleColor.value = c;
+  tcHex.value = c;
+  refreshSwatchIn('tcSwatches', c);
+  markDirty();
+}
+
+inTitleColor.addEventListener('input', () => {
+  tcHex.value = inTitleColor.value;
+  refreshSwatchIn('tcSwatches', inTitleColor.value);
+});
+inTitleColor.addEventListener('change', () => pushRecent(inTitleColor.value));
+tcHex.addEventListener('input', () => {
+  const c = parseHex(tcHex.value);
+  if (c) {
+    doc.settings.titleColor = c;
+    inTitleColor.value = c;
+    refreshSwatchIn('tcSwatches', c);
+    markDirty();
+  }
+});
+tcHex.addEventListener('change', () => pushRecent(tcHex.value));
+
+/* ---------- Default node color field (swatches + hex + recent) ---------- */
+
+const ncHex = document.getElementById('ncHex');
+
+function applyDefaultNodeColor(c) {
+  doc.settings.defaultNodeColor = c;
+  inNodeColor.value = c;
+  ncHex.value = c;
+  refreshSwatchIn('ncSwatches', c);
+  markDirty();
+}
+
+inNodeColor.addEventListener('input', () => {
+  ncHex.value = inNodeColor.value;
+  refreshSwatchIn('ncSwatches', inNodeColor.value);
+});
+inNodeColor.addEventListener('change', () => pushRecent(inNodeColor.value));
+ncHex.addEventListener('input', () => {
+  const c = parseHex(ncHex.value);
+  if (c) {
+    doc.settings.defaultNodeColor = c;
+    inNodeColor.value = c;
+    refreshSwatchIn('ncSwatches', c);
+    markDirty();
+  }
+});
+ncHex.addEventListener('change', () => pushRecent(ncHex.value));
+
 const inSize = document.getElementById('setSize');
 inSize.addEventListener('change', () => {
   const [w, h] = inSize.value.split('x').map(Number);
@@ -1507,6 +1585,10 @@ function syncSettingsUI() {
   inTitleSize.value = s.titleSize;
   document.getElementById('titleSizeVal').textContent = s.titleSize;
   inTitleColor.value = s.titleColor;
+  tcHex.value = s.titleColor;
+  refreshSwatchIn('tcSwatches', s.titleColor);
+  ncHex.value = s.defaultNodeColor;
+  refreshSwatchIn('ncSwatches', s.defaultNodeColor);
   inDecimals.value = String(s.decimals);
   inPrefix.value = s.prefix;
   inSuffix.value = s.suffix;
@@ -1789,7 +1871,10 @@ function init() {
   if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
   buildSwatches();
   buildLinkSwatches();
+  buildSwatchRow('tcSwatches', ['#0b0b0b', '#1c5cab', ...PALETTE], applyTitleColor);
+  buildSwatchRow('ncSwatches', [NEUTRAL_NODE, ...PALETTE], applyDefaultNodeColor);
   buildPaletteGrid();
+  renderRecentRows();
   const index = loadIndex();
   if (!index.length) {
     doc = sampleDoc();
