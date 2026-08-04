@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.21';
+const APP_VERSION = '1.22';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -476,11 +476,10 @@ function computeLayout(d) {
 
   // ---- Margins ----
   const fs = s.fontSize;
+  // Wrap cap: no label line may run wider than this before wrapping.
   let maxLabelW = 40;
   nodes.forEach((n) => {
     const o = d.nodes[n.name] || {};
-    // Bold name line, then the amount line and optional note at regular weight.
-    // Manual breaks ("|") mean only the widest piece needs margin room.
     String(o.label || n.name).split(/\s*\|\s*/).forEach((seg) => {
       maxLabelW = Math.max(maxLabelW, estTextWidth(seg, fs, true));
     });
@@ -488,10 +487,31 @@ function computeLayout(d) {
     if (line2) maxLabelW = Math.max(maxLabelW, estTextWidth(line2, fs));
     if (o.line3) maxLabelW = Math.max(maxLabelW, estTextWidth(o.line3, Math.max(9, fs - 2)));
   });
-  maxLabelW = Math.min(maxLabelW + 14, s.width * 0.3);
+  maxLabelW = Math.min(maxLabelW + 14, s.width * 0.22);
+
+  // Each side only reserves room for its own column's labels (after wrapping),
+  // so the flows get as much horizontal span as the labels truly allow.
+  function nodeLabelMaxW(n) {
+    const o = d.nodes[n.name] || {};
+    let m = 0;
+    labelLines(o.label || n.name, fs, maxLabelW - 16).forEach((line) => {
+      m = Math.max(m, estTextWidth(line, fs, true));
+    });
+    const line2 = o.line2 || (s.showValues ? formatAmount(n.value, s) : '');
+    if (line2) m = Math.max(m, estTextWidth(line2, fs));
+    if (o.line3) m = Math.max(m, estTextWidth(o.line3, Math.max(9, fs - 2)));
+    return m;
+  }
   const outside = s.labelPosition === 'outside';
-  const marginL = outside ? maxLabelW : 16;
-  const marginR = outside ? maxLabelW : 16;
+  let marginL = 16;
+  let marginR = 16;
+  if (outside) {
+    nodes.forEach((n) => {
+      const w = Math.min(nodeLabelMaxW(n), maxLabelW - 16) + 14;
+      if (n.depth === 0) marginL = Math.max(marginL, w);
+      if (n.depth === maxDepth) marginR = Math.max(marginR, w);
+    });
+  }
   const marginT = (d.name && s.showTitle ? s.titleSize * 1.3 + 30 : 0) + 22;
   const marginB = s.showCredit ? 38 : 26;
 
@@ -774,8 +794,14 @@ function linkOpacityEff() {
 function linkPath(l) {
   const x0 = l.source.x1;
   const x1 = l.target.x0;
-  const midX = (x0 + x1) / 2;
-  return `M${x0},${l.sy}C${midX},${l.sy} ${midX},${l.ty} ${x1},${l.ty}`;
+  const dx = x1 - x0;
+  // Ribbons thicker than their horizontal run fold over themselves on a full
+  // S-curve. Flatten the curve toward a straight band as thickness grows.
+  const ratio = Math.abs(dx) / Math.max(1, l.width);
+  const curv = Math.max(0.08, 0.5 * Math.min(1, ratio / 2));
+  const cx0 = x0 + dx * curv;
+  const cx1 = x1 - dx * curv;
+  return `M${x0},${l.sy}C${cx0},${l.sy} ${cx1},${l.ty} ${x1},${l.ty}`;
 }
 
 function render() {
