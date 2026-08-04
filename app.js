@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.22';
+const APP_VERSION = '1.23';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -662,19 +662,34 @@ function computeLayout(d) {
     });
   }
 
-  let alpha = 0.9;
-  for (let i = 0; i < 8; i++) {
-    relaxRight(alpha);
+  if (s.layoutMode === 'sorted') {
+    // Largest to smallest inside each column; no reshuffling by the flows.
+    columns.forEach((col) => {
+      col.sort((a, b) => b.value - a.value);
+      let prev = null;
+      col.forEach((n) => {
+        const minY = prev ? prev.y1 + gapFor(prev, n) : marginT;
+        n.y1 = minY + (n.y1 - n.y0);
+        n.y0 = minY;
+        prev = n;
+      });
+    });
     resolveCollisions();
-    relaxLeft(alpha);
-    resolveCollisions();
-    alpha *= 0.8;
+  } else {
+    let alpha = 0.9;
+    for (let i = 0; i < 8; i++) {
+      relaxRight(alpha);
+      resolveCollisions();
+      relaxLeft(alpha);
+      resolveCollisions();
+      alpha *= 0.8;
+    }
   }
 
   // ---- Optional smart spread: fill each column top to bottom evenly ----
-  if (s.layoutMode === 'spread') {
+  if (s.layoutMode === 'spread' || s.layoutMode === 'sorted') {
     columns.forEach((col) => {
-      col.sort((a, b) => a.y0 - b.y0); // keep the crossing-minimized order
+      col.sort((a, b) => a.y0 - b.y0); // keep the current column order
       const heights = col.map((n) => n.y1 - n.y0);
       const totalH = heights.reduce((a, h) => a + h, 0);
       // Leave room so the first and last labels stay inside the drawing area.
