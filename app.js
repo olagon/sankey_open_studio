@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.2';
+const APP_VERSION = '1.21';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -690,11 +690,13 @@ function computeLayout(d) {
   });
 
   // Never let a node escape the canvas (e.g. after a title change shrinks
-  // the drawing area). A node that stays on screen stays selectable.
+  // the drawing area) or overlap the title. A node that stays on screen
+  // stays selectable.
+  const topLimit = (d.name && s.showTitle) ? s.titleSize * 1.3 + 26 : 4;
   nodes.forEach((n) => {
     const h = n.y1 - n.y0;
     const w = n.x1 - n.x0;
-    if (n.y0 < 4) { n.y0 = 4; n.y1 = 4 + h; }
+    if (n.y0 < topLimit) { n.y0 = topLimit; n.y1 = topLimit + h; }
     if (n.y1 > s.height - 4) { n.y1 = s.height - 4; n.y0 = n.y1 - h; }
     if (n.x0 < 2) { n.x0 = 2; n.x1 = 2 + w; }
     if (n.x1 > s.width - 2) { n.x1 = s.width - 2; n.x0 = n.x1 - w; }
@@ -1038,7 +1040,8 @@ function bindDrag(gNodes) {
         if (!moved) return;
         // Clamp so the node cannot be dragged off the canvas.
         const S = doc.settings;
-        dy = Math.max(4 - startY0, Math.min(dy, S.height - 4 - nodeH - startY0));
+        const topLimit = (doc.name && S.showTitle) ? S.titleSize * 1.3 + 26 : 4;
+        dy = Math.max(topLimit - startY0, Math.min(dy, S.height - 4 - nodeH - startY0));
         dx = Math.max(2 - startX0, Math.min(dx, S.width - 2 - nodeW - startX0));
         o.dx = baseDx + dx;
         o.dy = baseDy + dy;
@@ -1492,6 +1495,15 @@ const inNodeWidth = bindSetting('setNodeWidth', 'nodeWidth', { number: true, sho
 const inNodePad = bindSetting('setNodePad', 'nodePadding', { number: true, showIn: 'nodePadVal' });
 const inLinkOpacity = bindSetting('setLinkOpacity', 'linkOpacity', { number: true, showIn: 'linkOpacityVal' });
 const inLayoutMode = bindSetting('setLayoutMode', 'layoutMode', { event: 'change' });
+inLayoutMode.addEventListener('change', () => {
+  // Choosing a layout means "arrange this for me": start from a clean slate.
+  for (const name in doc.nodes) {
+    delete doc.nodes[name].dx;
+    delete doc.nodes[name].dy;
+    if (!Object.keys(doc.nodes[name]).length) delete doc.nodes[name];
+  }
+  markDirty();
+});
 const inGroupBelow = bindSetting('setGroupBelow', 'groupBelowPct', { number: true, event: 'change' });
 const inNodeColor = bindSetting('setNodeColor', 'defaultNodeColor');
 const inLinkColorMode = bindSetting('setLinkColorMode', 'linkColorMode');
