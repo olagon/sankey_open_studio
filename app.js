@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.14';
+const APP_VERSION = '1.2';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -58,6 +58,7 @@ const DEFAULT_SETTINGS = {
   titleSize: 26,
   titleColor: '#1c5cab',
   groupBelowPct: 0, // 0 = off; otherwise combine end nodes under this % of total
+  layoutMode: 'flow', // 'flow' hugs the flows; 'spread' fills each column evenly
 };
 
 /* 20 color presets. Clicking one colors every node, cycling through the set
@@ -648,6 +649,33 @@ function computeLayout(d) {
     relaxLeft(alpha);
     resolveCollisions();
     alpha *= 0.8;
+  }
+
+  // ---- Optional smart spread: fill each column top to bottom evenly ----
+  if (s.layoutMode === 'spread') {
+    columns.forEach((col) => {
+      col.sort((a, b) => a.y0 - b.y0); // keep the crossing-minimized order
+      const heights = col.map((n) => n.y1 - n.y0);
+      const totalH = heights.reduce((a, h) => a + h, 0);
+      // Leave room so the first and last labels stay inside the drawing area.
+      const topPad = Math.max(0, (col[0].labelH - heights[0]) / 2);
+      const botPad = Math.max(0, (col[col.length - 1].labelH - heights[heights.length - 1]) / 2);
+      const span = innerH - topPad - botPad;
+      if (col.length === 1) {
+        const n = col[0];
+        n.y0 = marginT + (innerH - heights[0]) / 2;
+        n.y1 = n.y0 + heights[0];
+        return;
+      }
+      const gap = (span - totalH) / (col.length - 1);
+      if (gap < 2) return; // too crowded to spread; keep the compact layout
+      let y = marginT + topPad;
+      col.forEach((n, i) => {
+        n.y0 = y;
+        n.y1 = y + heights[i];
+        y = n.y1 + gap;
+      });
+    });
   }
 
   // ---- Apply manual drag offsets ----
@@ -1463,6 +1491,7 @@ const inSuffix = bindSetting('setSuffix', 'suffix');
 const inNodeWidth = bindSetting('setNodeWidth', 'nodeWidth', { number: true, showIn: 'nodeWidthVal' });
 const inNodePad = bindSetting('setNodePad', 'nodePadding', { number: true, showIn: 'nodePadVal' });
 const inLinkOpacity = bindSetting('setLinkOpacity', 'linkOpacity', { number: true, showIn: 'linkOpacityVal' });
+const inLayoutMode = bindSetting('setLayoutMode', 'layoutMode', { event: 'change' });
 const inGroupBelow = bindSetting('setGroupBelow', 'groupBelowPct', { number: true, event: 'change' });
 const inNodeColor = bindSetting('setNodeColor', 'defaultNodeColor');
 const inLinkColorMode = bindSetting('setLinkColorMode', 'linkColorMode');
@@ -1617,6 +1646,7 @@ function syncSettingsUI() {
   document.getElementById('nodePadVal').textContent = s.nodePadding;
   inLinkOpacity.value = s.linkOpacity;
   document.getElementById('linkOpacityVal').textContent = s.linkOpacity;
+  inLayoutMode.value = s.layoutMode || 'flow';
   inGroupBelow.value = String(s.groupBelowPct || 0);
   inNodeColor.value = s.defaultNodeColor;
   inLinkColorMode.value = s.linkColorMode;
