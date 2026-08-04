@@ -11,7 +11,7 @@
 /* Versioning: tiny fixes bump by 0.01 (1.01, 1.02...), decent updates bump
    by 0.1 (1.1, 1.2...), and the major number only changes when the project
    owner says so. */
-const APP_VERSION = '1.13';
+const APP_VERSION = '1.14';
 
 const PALETTE = [
   '#2a78d6', // blue
@@ -40,8 +40,8 @@ function rememberOpen(id) {
 }
 
 const DEFAULT_SETTINGS = {
-  width: 960,
-  height: 600,
+  width: 1200,
+  height: 750,
   nodeWidth: 14,
   nodePadding: 24,
   linkOpacity: 0.45,
@@ -380,7 +380,7 @@ function groupSmallEnds(links, pct) {
   links.forEach((l) => {
     const from = smallSources.has(l.from) ? 'Other Sources' : l.from;
     const to = smallTargets.has(l.to) ? 'Other Targets' : l.to;
-    const key = from + ' ' + to;
+    const key = JSON.stringify([from, to]);
     const m = merged.get(key);
     if (m) {
       m.amount += l.amount;
